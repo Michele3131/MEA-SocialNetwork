@@ -1,72 +1,85 @@
-# MEA Social Network - Concept & Documentation
+# MEA SOCIETAS SOCIALIS
 
-## 1. Visione Concettuale
-MEA (Minimal Essential Aesthetics) è un social network progettato per ridurre il rumore visivo e cognitivo tipico delle piattaforme moderne. L'interfaccia si ispira all'estetica dei terminali e del brutalismo digitale, ponendo il contenuto al centro dell'esperienza senza distrazioni superflue.
+Versione backend Flask del social network MEA. Progetto ottimizzato per deploy su PythonAnywhere con database MySQL.
 
-### Principi Chiave:
-- **Minimalismo Radicale**: Eliminazione di ogni elemento decorativo non funzionale.
-- **Ordine Geometrico**: Layout a griglia rigorosa con dimensioni fisse per garantire armonia visiva.
-- **Focus sul Contenuto**: Il testo e i media sono i protagonisti assoluti.
-- **Interazione Essenziale**: Punteggi e feedback ridotti all'osso per scoraggiare la dipendenza da "vanity metrics".
+## Architettura Tecnica
 
-## 2. Struttura dell'Interfaccia
+- **Backend**: Flask (Python)
+- **Database**: MySQL
+- **Frontend**: HTML5, CSS3 (Grid Layout per Masonry), JavaScript ES6
+- **Storage**: File system locale per upload media
 
-Il sito è costruito come una Single Page Application (SPA) contenuta in un wrapper fisso che occupa gran parte dello schermo, simulando una finestra applicativa o un terminale dedicato.
+## Funzionalità Core
 
-### Layout Principale (Desktop)
-Il layout è diviso in due colonne principali all'interno di un contenitore centrato con margini uniformi:
+### 1. Sistema di Votazione (Paparell)
+- Gestione voti tramite tabella `likes` per persistenza e unicità.
+- Prevenzione self-like lato server.
+- Calcolo dinamico del punteggio totale nel profilo utente tramite aggregazione SQL (`SUM`).
 
-1.  **Colonna Sinistra (Feed)**:
-    - Occupa la maggior parte dello spazio.
-    - Contiene lo stream dei post.
-    - Scorrimento interno per mantenere l'intestazione e la struttura fisse.
+### 2. Gestione Feed e Masonry
+- Layout dinamico basato su CSS Grid.
+- Algoritmo JavaScript per il calcolo degli span di riga (`grid-row-end`) basato sull'altezza effettiva del contenuto.
+- Caricamento asincrono (Lazy Loading) dei post tramite API paginata.
 
-2.  **Colonna Destra (Utility)**:
-    - **Pannello Comandi (Alto)**: Accesso rapido a funzionalità chiave (Tema, Nuovo Post, Profilo, Cerca).
-    - **Notifiche (Centro)**: Lista testuale e minimale delle attività recenti.
-    - **Tendenze (Basso)**: Lista di hashtag popolari, filtrabili per periodo (Sempre / Ultime 24h).
+### 3. Sistema di Notifiche
+- Polling client-side ogni 60 secondi verso `/api/notifications`.
+- Tracking dei nuovi like tramite colonna `last_seen_likes` nella tabella `users`.
+- Calcolo delta tra totale attuale e ultimo valore visualizzato.
 
-## 3. Design dei Post
+### 4. Gestione Media
+- Generazione nomi file univoci tramite concatenazione di timestamp e UUID.
+- Validazione estensioni file e dimensione massima (16MB).
 
-Ogni post è racchiuso in una "card" terminale con bordi netti. Esistono tre tipologie di visualizzazione, gestite automaticamente in base al contenuto:
+## Configurazione e Deploy
 
-### A. Post Standard (Media + Testo)
-- **Dimensioni**: Altezza fissa standard (`240px`).
-- **Layout**: 
-    - Sinistra: Media (Immagine/Video) in formato quadrato 1:1.
-    - Centro: Linea divisoria verticale.
-    - Destra: Header (Utente, Data, Ora), Didascalia troncata, Statistiche.
-- **Espansione**: Cliccando sul testo o sul media, si apre un Lightbox per la fruizione completa.
+### 1. Requisiti
+- Python 3.x
+- MySQL Server
+- Dipendenze: `flask`, `mysql-connector-python`, `werkzeug`
 
-### B. Post Solo Testo
-- **Dimensioni**: Altezza dimezzata (`120px`) per ottimizzare lo spazio.
-- **Layout**: Tutto il contenuto parte da sinistra.
-- **Visualizzazione**: Testo troncato a 2 righe con possibilità di espansione.
+### 2. Setup Database
+Importare la struttura definita in `database.sql`:
+```bash
+mysql -u [user] -p [database_name] < database.sql
+```
 
-### C. Post Solo Media
-- **Dimensioni**: Larghezza dimezzata (50%) mantenendo l'altezza standard.
-- **Layout**: Due post di questo tipo si affiancano automaticamente sulla stessa riga.
-- **Contenuto**: Media a tutto schermo (nel riquadro) con header minimale e controlli in sovraimpressione o in calce.
+### 3. Configurazione Ambiente
+Modificare `DB_CONFIG` in `app.py`:
+```python
+DB_CONFIG = {
+    'host': 'hostname',
+    'user': 'username',
+    'password': 'password',
+    'database': 'database_name'
+}
+```
 
-## 4. Funzionalità Specifiche
+### 4. Deploy su PythonAnywhere
 
-### Sistema di Punteggio (Score)
-Al posto dei classici "Mi Piace", MEA utilizza un sistema di **Score** numerico.
-- **Controlli**: Due pulsanti `+` e `-` posti all'estremità destra del post.
-- **Logica**: L'utente può incrementare o decrementare il valore del contenuto, promuovendo la qualità piuttosto che la sola popolarità virale.
+1. **Upload**: Caricare i file nella directory di progetto (es. `/home/[user]/MEApy`).
+2. **Directory Struttura**: Assicurarsi che esistano le cartelle:
+   - `static/`
+   - `static/uploads/` (con permessi di scrittura per il processo web)
+3. **Web App**: Configurare una nuova Web App con entry point `/home/[user]/MEApy`.
+4. **Static Files**: Nella sezione "Static files" della Web tab, aggiungere le seguenti mappature:
+   - **URL**: `/static/`
+   - **Directory**: `/home/[user]/MEApy/static`
+5. **WSGI Configuration**:
+```python
+import sys
+import os
+path = '/home/[user]/MEApy'
+if path not in sys.path:
+    sys.path.append(path)
+from app import app as application
+```
 
-### Visualizzazione Data/Ora
-Ogni post riporta un timestamp preciso `[YYYY-MM-DD HH:MM]`, richiamando i log di sistema.
+### 5. Note su Caricamento Media
+- **Limite**: 16MB (configurato tramite `MAX_CONTENT_LENGTH`).
+- **Pathing**: Utilizzo di `os.path.abspath` in `app.py` per garantire la risoluzione dei percorsi su ambienti Linux/PythonAnywhere.
+- **Naming**: I file vengono rinominati in `[timestamp]_[uuid].[ext]` per prevenire collisioni.
 
-### Modalità Chiaro/Scuro (Theme)
-Un pulsante "TEMA" nel pannello comandi inverte la palette cromatica:
-- **Dark Mode (Default)**: Sfondo nero profondo `#0a0a0a`, testo grigio/bianco, accentuazioni minimali. Ideale per riposare la vista.
-- **Light Mode**: Sfondo bianco/grigio chiaro, testo scuro ad alto contrasto.
-
-### Lightbox
-Un visualizzatore modale a tutto schermo per immagini, video e testi lunghi, permettendo di focalizzarsi sul singolo contenuto senza il rumore del feed.
-
-## 5. Stato del Progetto
-
-- **index_demo.html**: Versione dimostrativa con dati mock (fittizi) per visualizzare il layout e le interazioni (JS incluso in `js/main.js`).
-- **index.html**: Versione "Production Ready", pulita e pronta per essere collegata a un backend reale (JS in `js/app.js`).
+## Struttura Database
+- `users`: Anagrafica utenti, credenziali (plain text), avatar, tracking notifiche.
+- `posts`: Contenuti (testo/URL media), metadati, counter like denormalizzato.
+- `likes`: Relazione molti-a-molti tra utenti e post per tracciamento voti singoli.

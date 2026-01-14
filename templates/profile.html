@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilo di {{ user.Nickname }} - MEA SOCIETAS SOCIALIS</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <div class="lightbox-content-wrapper"></div>
+    </div>
+
+    <!-- Main App Container Centered -->
+    <div class="d-flex align-items-center justify-content-center vh-100">
+        <div class="app-wrapper" style="max-width: 1000px; margin: auto;">
+            <div class="row h-100 m-0">
+                
+                <!-- Colonna Sinistra: Profilo e Post dell'Utente -->
+                <div class="col-md-12 p-0 h-100">
+                    <div class="panel-content border-theme p-4 h-100 d-flex flex-column">
+                        
+                        <!-- Header Profilo -->
+                        <div class="profile-header-container mb-4">
+                            <div class="terminal-header mb-3">
+                                <span>> USER_PROFILE: {{ user.Nickname }}</span>
+                                <a href="/" class="btn-icon" style="text-decoration: none; font-size: 0.9rem;" title="Torna al Feed">← ESC</a>
+                            </div>
+                            
+                            <div class="d-flex align-items-start gap-4">
+                                <!-- Avatar -->
+                                <div class="profile-avatar-wrapper">
+                                    <img src="{{ user.Avatar or 'https://api.dicebear.com/7.x/pixel-art/svg?seed=' + user.Nickname }}" alt="Avatar" class="profile-avatar-large border-theme">
+                                </div>
+                                
+                                <!-- Info Utente -->
+                                <div class="profile-info-details flex-grow-1">
+                                    <div class="d-flex align-items-center gap-3 mb-2">
+                                        <h2 class="m-0" style="color: var(--text-primary); font-family: 'Fira Code', monospace;">@{{ user.Nickname }}</h2>
+                                        <span class="badge-terminal">ISCRITTO: {{ user.created_at or '01/01/2026' }}</span>
+                                    </div>
+                                    
+                                    <div class="profile-stats mt-3">
+                                        <div class="stat-item">
+                                            <span class="stat-label">TOTALE PAPARELL:</span>
+                                            <span class="stat-value" id="total-paparell">{{ total_score }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="post-divider mb-4"></div>
+
+                        <!-- Lista Post Utente -->
+                        <div class="terminal-header mb-2">
+                            <span>> POST_PUBBLICATI</span>
+                        </div>
+                        
+                        <div class="feed-container overflow-auto flex-grow-1" id="profile-posts-container">
+                            {% for post in posts %}
+                            <div class="terminal-card" style="width: 100%; height: auto; min-height: 100px;">
+                                <!-- Media Section -->
+                                {% if post.Content %}
+                                <div class="post-media-section" style="width: 100%; height: 200px;">
+                                    <div class="media-container">
+                                        <img src="{{ post.Content }}" alt="Post image" onclick="openLightboxMedia('{{ post.Content }}', 'image')">
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Content Section -->
+                                <div class="post-content-section p-2">
+                                    <div class="post-header mb-1">
+                                        <span class="user-tag" style="font-size: 0.8rem; font-weight: bold;">@{{ user.Nickname }}</span>
+                                        <span class="post-time" style="font-size: 0.7rem; color: var(--text-secondary);">[{{ post.created_at }}]</span>
+                                    </div>
+                                    
+                                    {% if post.Description %}
+                                    <div class="post-caption" style="font-size: 0.9rem; -webkit-line-clamp: 3;">
+                                        {{ post.Description }}
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="post-footer mt-2 pt-2 border-top" style="border-color: var(--border-color) !important;">
+                                        <div class="score-container d-flex align-items-center gap-2">
+                                            <span class="score-value" style="font-weight: bold;">{{ post.likes or 0 }}</span>
+                                            <span class="stat-label" style="font-size: 0.6rem;">PAPARELL</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-center p-5 text-secondary" style="grid-column: 1 / -1;">
+                                <span class="blink">> NESSUN POST PUBBLICATO</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS (reuse lightbox logic) -->
+    <script>
+        const lightbox = document.getElementById('lightbox');
+        const lightboxWrapper = lightbox.querySelector('.lightbox-content-wrapper');
+        const lightboxClose = document.querySelector('.lightbox-close');
+
+        function openLightboxMedia(src, type) {
+            lightboxWrapper.innerHTML = '';
+            if (type === 'image') {
+                const img = document.createElement('img');
+                img.src = src;
+                lightboxWrapper.appendChild(img);
+            }
+            lightbox.classList.add('active');
+        }
+
+        // Masonry Logic per il profilo
+        const profileContainer = document.getElementById('profile-posts-container');
+        function resizeProfileGridItem(item) {
+            const rowHeight = 10;
+            const rowGap = 15;
+            const contentHeight = item.scrollHeight;
+            const rowSpan = Math.ceil((contentHeight + rowGap) / (rowHeight + rowGap));
+            item.style.gridRowEnd = 'span ' + rowSpan;
+        }
+
+        function resizeAllProfileItems() {
+            const allItems = profileContainer.getElementsByClassName('terminal-card');
+            for (let x = 0; x < allItems.length; x++) {
+                resizeProfileGridItem(allItems[x]);
+            }
+        }
+
+        window.addEventListener('load', resizeAllProfileItems);
+        window.addEventListener('resize', resizeAllProfileItems);
+
+        lightboxClose.onclick = () => lightbox.classList.remove('active');
+        lightbox.onclick = (e) => { if (e.target === lightbox) lightbox.classList.remove('active'); };
+    </script>
+</body>
+</html>

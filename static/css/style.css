@@ -58,7 +58,9 @@ body, html {
 .h-10 { height: 10%; }
 .h-15 { height: 15%; }
 .h-25 { height: 25%; }
+.h-35 { height: 35%; } /* Added for longer notifications */
 .h-60 { height: 60%; } 
+.h-50 { height: 50%; } /* Added for better distribution */
 
 /* Main Application Wrapper */
 .app-wrapper {
@@ -109,14 +111,15 @@ body, html {
     transform: rotate(90deg);
 }
 
-/* FEED CONTAINER GRID */
+/* FEED CONTAINER GRID - MASONRY STYLE */
 .feed-container {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-auto-rows: 10px;
     gap: 15px;
-    align-content: flex-start;
-    padding-right: 0; /* Removed padding to ensure perfect 50% split alignment */
-    overflow-y: auto; /* Ensure scrolling */
+    padding-right: 5px;
+    overflow-y: auto;
+    align-content: start;
 }
 
 /* Terminal Card (Base Post Style) */
@@ -128,32 +131,21 @@ body, html {
     flex-direction: column;
     overflow: hidden;
     padding: 10px;
+    grid-row-end: span 20; /* Default span */
+    height: fit-content;
 }
 
-.terminal-card:hover {
-    box-shadow: -2px 2px 0px var(--border-color);
-}
-
-/* POST TYPES */
-
-/* Standard Post (Media + Text) */
+/* Specific spans for different post types to fill gaps */
 .post-standard {
-    width: 100%;
-    height: var(--post-height-standard);
+    grid-row-end: span 25;
 }
 
-/* Text Only Post */
 .post-text-only {
-    width: 100%;
-    min-height: var(--post-height-text);
-    max-height: var(--post-height-standard);
+    grid-row-end: span 15;
 }
 
-/* Media Only Post */
 .post-media-only {
-    width: calc(33.333% - 10px); /* 3 per row (approx, with gap) */
-    height: var(--post-height-standard); /* Keep standard height for alignment */
-    padding: 0;
+    grid-row-end: span 22;
 }
 
 /* Ensure consistent media sizing */
@@ -298,13 +290,14 @@ body, html {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding-right: 8px;
+    padding: 0 8px 8px 8px; /* Added padding to bottom and left/right */
 }
 
 .media-only-buttons .btn-score {
     width: 100%;
-    height: 32px;
+    height: 36px; /* Slightly taller */
     margin-left: 0;
+    font-size: 1.1rem;
 }
 
 /* Expanded Trend Styling */
@@ -385,16 +378,14 @@ body, html {
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
     cursor: pointer;
-    width: 26px;
-    height: 26px;
-    /* line-height: 24px; Removed fixed line-height to allow flex centering */
-    display: flex; /* Flexbox for centering SVG */
+    width: 100%; /* Allarga al massimo del contenitore */
+    height: 36px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 5px;
     font-family: var(--font-stack);
     transition: all 0.2s;
-    padding: 2px; /* Small padding for the icon */
+    padding: 2px;
 }
 
 /* Duck Icon Styles */
@@ -413,48 +404,89 @@ body, html {
      color: var(--highlight);
  }
  
- /* Score buttons should fill the right column */
+ .btn-score.active {
+     background-color: var(--text-primary);
+     color: var(--bg-color);
+     border-color: var(--text-primary);
+ }
+ 
+/* Score buttons adjustments */
 .controls-stack .btn-score {
-    flex: 1 1 45%;
     height: calc(50% - 3px);
-    aspect-ratio: auto; /* Allow rectangular shape */
-    width: 100%; /* Fill the column width */
-    margin-left: 0;
+    font-size: 1.2rem;
 }
-.post-text-only .controls-stack .btn-score {
-    aspect-ratio: auto;
+
+.media-only-buttons .btn-score {
+    height: 36px;
+    font-size: 1.1rem;
+}
+
+/* Right-side controls column */
+.post-side-controls {
+    width: 15%; /* Leggermente più largo per bottoni migliori */
+    min-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.controls-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
     width: 100%;
-    height: calc(50% - 3px);
+    height: 100%;
 }
- 
- /* Social Context (Interactions) - Removed as requested, keeping CSS clean if needed later or deleting */
- 
- /* Right-side controls column (10% width) */
- .post-side-controls {
-     width: 10%;
-     min-width: 60px;
-     display: flex;
-     flex-direction: row;
-     align-items: center;
-     justify-content: center;
-     gap: 10px;
-     flex-shrink: 0;
- }
- 
- .controls-stack {
-     display: flex;
-     flex-direction: column;
-     gap: 6px;
-     align-items: center;
-     height: 100%;
- }
+
+/* Profile Page Specific Styles */
+.profile-avatar-large {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+    padding: 5px;
+    background-color: var(--panel-bg);
+}
+
+.badge-terminal {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-family: 'Fira Code', monospace;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-color);
+}
  
  .timestamp-score {
-     display: none; /* Moved into header; this block is no longer used */
- }
- }
- 
- .timestamp-score .time {
+    display: none; /* Moved into header; this block is no longer used */
+}
+
+.timestamp-score .time {
      color: var(--text-secondary);
  }
  
@@ -493,6 +525,8 @@ body, html {
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 .trend-item {
@@ -503,6 +537,9 @@ body, html {
     border: 1px dashed var(--border-color);
     color: var(--text-secondary);
     font-size: 0.85rem;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 .trend-item .title {
     color: var(--text-primary);
@@ -632,7 +669,15 @@ body, html {
     border-bottom: 1px solid var(--border-color);
     font-size: 0.9rem;
     color: var(--text-secondary);
+    transition: background-color 0.3s;
 }
+
+.notification-item.new {
+    border-left: 2px solid var(--highlight);
+    background-color: rgba(255, 255, 255, 0.05);
+    padding-left: 10px !important;
+}
+
 .terminal-list li:last-child {
     border-bottom: none;
 }
