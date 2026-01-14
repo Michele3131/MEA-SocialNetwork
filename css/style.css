@@ -1,0 +1,715 @@
+:root {
+    /* Palette Sofisticata - Dark Mode (Default) */
+    --bg-color: #0a0a0a;       
+    --panel-bg: #111111;       
+    --text-primary: #e0e0e0;   
+    --text-secondary: #a0a0a0; 
+    --border-color: #333333;   
+    --highlight: #ffffff;      
+    --accent: #505050;         
+    
+    --font-stack: 'Fira Code', 'Courier New', Courier, monospace;
+    --transition-speed: 0.3s;
+    
+    /* Post Dimensions */
+    --post-height-standard: 240px;
+    --post-height-text: 120px; /* Half of standard */
+}
+
+/* Light Mode Variables */
+:root[data-theme="light"] {
+    --bg-color: #f0f0f0;
+    --panel-bg: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555555;
+    --border-color: #cccccc;
+    --highlight: #000000;
+    --accent: #d0d0d0;
+}
+
+body, html {
+    height: 100%;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font-stack);
+    overflow: hidden;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-color); 
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color); 
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary); 
+}
+
+/* Layout helpers */
+.w-90 { width: 90%; }
+.h-90 { height: 90%; }
+.h-10 { height: 10%; }
+.h-15 { height: 15%; }
+.h-25 { height: 25%; }
+.h-60 { height: 60%; } 
+
+/* Main Application Wrapper */
+.app-wrapper {
+    width: calc(100vw - 60px);
+    height: calc(100vh - 60px);
+    max-width: 1920px;
+    margin: 30px; /* Equal margin all around */
+    position: relative;
+}
+
+/* Borders and Panels */
+.border-theme {
+    border: 1px solid var(--border-color);
+    background-color: var(--panel-bg);
+    transition: border-color var(--transition-speed), background-color var(--transition-speed);
+}
+
+.border-top-theme {
+    border-top: 1px solid var(--border-color);
+}
+
+/* Typography & Headers */
+.terminal-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0 5px;
+    transition: color 0.2s, transform 0.2s;
+}
+.btn-icon:hover {
+    color: var(--highlight);
+    transform: rotate(90deg);
+}
+
+/* FEED CONTAINER GRID */
+.feed-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-content: flex-start;
+    padding-right: 0; /* Removed padding to ensure perfect 50% split alignment */
+    overflow-y: auto; /* Ensure scrolling */
+}
+
+/* Terminal Card (Base Post Style) */
+.terminal-card {
+    border: 1px solid var(--border-color);
+    background-color: var(--panel-bg);
+    transition: box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 10px;
+}
+
+.terminal-card:hover {
+    box-shadow: -2px 2px 0px var(--border-color);
+}
+
+/* POST TYPES */
+
+/* Standard Post (Media + Text) */
+.post-standard {
+    width: 100%;
+    height: var(--post-height-standard);
+}
+
+/* Text Only Post */
+.post-text-only {
+    width: 100%;
+    min-height: var(--post-height-text);
+    max-height: var(--post-height-standard);
+}
+
+/* Media Only Post */
+.post-media-only {
+    width: calc(33.333% - 10px); /* 3 per row (approx, with gap) */
+    height: var(--post-height-standard); /* Keep standard height for alignment */
+    padding: 0;
+}
+
+/* Ensure consistent media sizing */
+.post-media-only .media-only-media {
+    width: var(--post-height-standard); /* Force width to match height (square) */
+    height: 100%;
+    flex-shrink: 0;
+}
+
+/* Post Internals */
+.post-layout {
+    display: flex;
+    height: 100%;
+    gap: 15px;
+}
+
+/* Media Section */
+.post-media-section {
+    height: 100%;
+    aspect-ratio: 1/1; /* Square media */
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* For Media Only posts, we want media left (square) and content right.
+   So we remove the previous overrides that made it top-bottom. 
+   The default .post-media-section is already square and height 100%. */
+.post-media-only .post-media-section {
+   /* Resetting to default behavior or ensuring it fits */
+   height: 100%;
+   width: auto;
+   aspect-ratio: 1/1;
+   margin-bottom: 0;
+}
+
+.media-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    cursor: zoom-in;
+    position: relative;
+    background-color: #000;
+}
+
+.media-container img, 
+.media-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.media-container:hover img {
+    transform: scale(1.05);
+}
+
+/* Vertical Divider */
+.post-divider {
+    width: 1px;
+    background-color: var(--border-color);
+    margin: 0 5px;
+    height: 100%;
+}
+
+/* Content Section */
+.post-content-section {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0; /* Fix flex overflow */
+}
+
+.media-only-layout {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.media-only-media {
+    height: 100%;
+    aspect-ratio: 1/1;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border-color);
+    cursor: zoom-in;
+    background: #000;
+}
+
+.media-only-media img,
+.media-only-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.media-only-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.media-only-meta {
+    padding: 8px 8px 0 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.media-only-user {
+    font-weight: 700;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-primary);
+}
+
+.media-only-date {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.media-only-bottom {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.media-only-score {
+    padding-left: 8px;
+    font-size: 0.75rem;
+    color: var(--text-primary);
+}
+
+.media-only-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-right: 8px;
+}
+
+.media-only-buttons .btn-score {
+    width: 100%;
+    height: 32px;
+    margin-left: 0;
+}
+
+/* Expanded Trend Styling */
+.trend-item.trend-expanded {
+    display: block; /* Override flex display */
+    padding: 0;
+    cursor: default;
+    border-style: solid;
+}
+
+.trend-expanded-header {
+    margin-bottom: 10px;
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+.post-header .user {
+    color: var(--text-primary);
+    font-weight: bold;
+}
+.post-header .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Caption Truncation */
+.post-caption {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+    flex-grow: 1; /* Fill vertical space */
+    margin: 0;
+    white-space: normal;
+    
+    /* Truncation Logic */
+    display: -webkit-box;
+    -webkit-line-clamp: 5; /* Lines for standard post */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    cursor: pointer;
+}
+
+.post-caption:hover {
+    color: var(--highlight);
+}
+
+/* Visual clue for clickability handled by cursor and line-clamp ellipsis */
+
+.post-text-only .post-caption {
+    -webkit-line-clamp: 12;
+}
+
+/* Ensure Left Alignment for Text-Only Posts */
+.post-text-only .post-content-section {
+    text-align: left;
+    /* Default align-items is stretch, which we want for full-width header */
+}
+
+/* Metadata & Stats */
+.caption-ellipsis {
+    color: var(--accent);
+    margin-left: 8px;
+    letter-spacing: 2px;
+    cursor: pointer;
+}
+
+.btn-score {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 26px;
+    height: 26px;
+    /* line-height: 24px; Removed fixed line-height to allow flex centering */
+    display: flex; /* Flexbox for centering SVG */
+    align-items: center;
+    justify-content: center;
+    margin-left: 5px;
+    font-family: var(--font-stack);
+    transition: all 0.2s;
+    padding: 2px; /* Small padding for the icon */
+}
+
+/* Duck Icon Styles */
+.duck-icon {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.duck-icon.inverted {
+    transform: scaleY(-1);
+}
+
+ .btn-score:hover {
+     border-color: var(--highlight);
+     color: var(--highlight);
+ }
+ 
+ /* Score buttons should fill the right column */
+.controls-stack .btn-score {
+    flex: 1 1 45%;
+    height: calc(50% - 3px);
+    aspect-ratio: auto; /* Allow rectangular shape */
+    width: 100%; /* Fill the column width */
+    margin-left: 0;
+}
+.post-text-only .controls-stack .btn-score {
+    aspect-ratio: auto;
+    width: 100%;
+    height: calc(50% - 3px);
+}
+ 
+ /* Social Context (Interactions) - Removed as requested, keeping CSS clean if needed later or deleting */
+ 
+ /* Right-side controls column (10% width) */
+ .post-side-controls {
+     width: 10%;
+     min-width: 60px;
+     display: flex;
+     flex-direction: row;
+     align-items: center;
+     justify-content: center;
+     gap: 10px;
+     flex-shrink: 0;
+ }
+ 
+ .controls-stack {
+     display: flex;
+     flex-direction: column;
+     gap: 6px;
+     align-items: center;
+     height: 100%;
+ }
+ 
+ .timestamp-score {
+     display: none; /* Moved into header; this block is no longer used */
+ }
+ }
+ 
+ .timestamp-score .time {
+     color: var(--text-secondary);
+ }
+ 
+ .timestamp-score .score {
+     color: var(--text-primary);
+ }
+ 
+ /* Trending Section */
+ .trending-content .terminal-header {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+ }
+ 
+ .filter-group {
+     display: flex;
+     gap: 8px;
+ }
+ 
+ .btn-filter {
+     background-color: transparent;
+     border: 1px solid var(--border-color);
+     color: var(--text-secondary);
+     font-family: var(--font-stack);
+     font-size: 0.75rem;
+     padding: 2px 8px;
+     cursor: pointer;
+     transition: all 0.2s;
+ }
+ .btn-filter:hover {
+     color: var(--text-primary);
+     border-color: var(--text-primary);
+ }
+ 
+.trending-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.trend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border: 1px dashed var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+.trend-item .title {
+    color: var(--text-primary);
+}
+.trend-preview {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    object-fit: cover;
+    background: #000;
+}
+.trend-caption {
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-primary);
+}
+.trend-expand-body {
+    margin-top: 8px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 8px;
+}
+.trend-collapse {
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 2px 8px;
+}
+.trend-bottom-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+ 
+ /* Lightbox Modal */
+.lightbox {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.95);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.lightbox.active {
+    display: flex;
+}
+
+.lightbox-content-wrapper {
+    max-width: 800px;
+    width: 90%;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--highlight);
+    padding: 20px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.lightbox-text {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+}
+
+.lightbox-media {
+    max-width: 100%;
+    max-height: 80vh;
+    border: 1px solid var(--border-color);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    color: var(--text-secondary);
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.lightbox-close:hover {
+    color: var(--highlight);
+}
+
+/* Controls Panel & others (Unchanged mostly) */
+.controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+    height: 100%;
+}
+
+.btn-control {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: var(--font-stack);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.btn-control:hover {
+    background-color: var(--text-primary);
+    color: var(--bg-color);
+}
+
+/* Notifications List */
+.terminal-list li {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+.terminal-list li:last-child {
+    border-bottom: none;
+}
+.terminal-list .user-highlight {
+    color: var(--text-primary);
+    font-weight: bold;
+}
+
+/* Trending Items */
+.trend-item {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    gap: 10px;
+    cursor: pointer;
+}
+.trend-item:hover {
+    background-color: rgba(128, 128, 128, 0.1);
+}
+.trend-item .rank {
+    font-weight: bold;
+    min-width: 25px;
+    color: var(--text-primary);
+}
+.trend-preview {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.trend-caption {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-secondary);
+}
+.trend-item .tag {
+    flex-grow: 1;
+    color: var(--text-secondary);
+}
+.trend-item .count {
+    color: var(--text-secondary);
+    font-size: 0.85em;
+}
+
+/* Tab Buttons */
+.btn-terminal {
+    background-color: transparent;
+    border: none;
+    color: var(--text-secondary);
+    border-radius: 0;
+    font-family: var(--font-stack);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-terminal:hover {
+    background-color: rgba(128, 128, 128, 0.1);
+    color: var(--text-primary);
+}
+
+.btn-terminal.active {
+    background-color: var(--text-primary);
+    color: var(--bg-color);
+    font-weight: bold;
+}
+
+/* Utility */
+.blink {
+    animation: blinker 1.5s step-end infinite;
+}
+
+@keyframes blinker {
+    50% { opacity: 0; }
+}
