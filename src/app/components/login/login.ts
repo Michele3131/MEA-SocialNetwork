@@ -9,44 +9,48 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="container" style="max-width: 400px; margin-top: 50px;">
+    <div class="container" style="max-width: 450px; margin-top: 50px;">
       <article>
-        <h2 style="text-align: center;">{{ isRegister ? 'Registrati' : 'Accedi' }}</h2>
+        <header>
+          <strong class="prompt">ACCESSO RICHIESTO</strong><span class="cursor"></span>
+        </header>
         
         <form (submit)="$event.preventDefault(); authAction()">
           <label *ngIf="isRegister">
-            Nome completo
-            <input type="text" [(ngModel)]="name" name="name" required>
+            <small style="opacity: 0.6;">[NOME COMPLETO]</small>
+            <input type="text" [(ngModel)]="name" name="name" required placeholder="Mario Rossi">
           </label>
           
           <label>
-            Email
-            <input type="email" [(ngModel)]="email" name="email" required>
+            <small style="opacity: 0.6;">[EMAIL]</small>
+            <input type="email" [(ngModel)]="email" name="email" required placeholder="mario@esempio.it">
           </label>
           
           <label>
-            Password
-            <input type="password" [(ngModel)]="password" name="password" required>
+            <small style="opacity: 0.6;">[PASSWORD]</small>
+            <input type="password" [(ngModel)]="password" name="password" required placeholder="********">
           </label>
 
-          <button type="submit" [disabled]="loading">
-            {{ loading ? 'Attendere...' : (isRegister ? 'Crea account' : 'Accedi') }}
+          <button type="submit" [disabled]="loading" style="width: 100%;">
+            {{ loading ? 'VERIFICA IN CORSO...' : (isRegister ? 'REGISTRATI' : 'ACCEDI') }}
           </button>
         </form>
 
-        <p style="text-align: center;">
+        <p style="text-align: center; font-size: 0.75rem;">
           <a href="javascript:void(0)" (click)="isRegister = !isRegister">
-            {{ isRegister ? 'Hai già un account? Accedi' : 'Non hai un account? Registrati' }}
+            {{ isRegister ? 'VAI ALL\'ACCESSO' : 'NON HAI UN ACCOUNT? REGISTRATI' }}
           </a>
         </p>
 
-        <hr>
+        <hr style="border-color: var(--border-color); opacity: 0.5;">
 
-        <button class="secondary outline" (click)="loginWithGoogle()" [disabled]="loading">
-          Accedi con Google
+        <button class="secondary outline" (click)="loginWithGoogle()" [disabled]="loading" style="width: 100%; font-size: 0.75rem;">
+          ACCEDI CON GOOGLE
         </button>
         
-        <p *ngIf="error" style="color: red; text-align: center; margin-top: 10px;">{{ error }}</p>
+        <p *ngIf="error" style="color: #ff4444; text-align: center; margin-top: 10px; font-size: 0.75rem;">
+          <strong class="prompt">ERRORE:</strong> {{ error }}
+        </p>
       </article>
     </div>
   `

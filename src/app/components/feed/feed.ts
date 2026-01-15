@@ -14,62 +14,62 @@ import { of } from 'rxjs';
       
       <article class="publish-card">
         <header>
-          <strong>Crea un nuovo post</strong>
+          <strong class="prompt">NUOVO POST</strong>
         </header>
         <textarea [(ngModel)]="newPost" 
-                  placeholder="A cosa stai pensando?" 
+                  placeholder="Scrivi qualcosa..." 
                   [disabled]="publishing"
-                  style="min-height: 120px; resize: none; border-radius: 8px; margin-bottom: 1rem;"></textarea>
+                  style="min-height: 80px; resize: none; margin-bottom: 1rem; border-radius: 0;"></textarea>
         <footer style="display: flex; justify-content: flex-end; padding-top: 0;">
           <button (click)="publish(user)" 
                   [disabled]="publishing" 
-                  style="width: auto; padding: 8px 32px;">
-            {{ publishing ? 'Pubblicazione...' : 'Pubblica' }}
+                  style="width: auto; padding: 4px 16px; font-size: 0.75rem;">
+            {{ publishing ? 'INVIO IN CORSO...' : 'PUBBLICA' }}
           </button>
         </footer>
       </article>
 
       <div *ngIf="error" class="error-msg">
-        <article style="border: 2px solid var(--del-color);">
-          <p style="color: var(--del-color);"><strong>⚠️ Errore nel caricamento del feed</strong></p>
+        <article>
+          <p><strong class="prompt">ERRORE DI SISTEMA</strong></p>
           <p>{{ error }}</p>
-          <button class="outline" (click)="retry()">Riprova</button>
+          <button class="outline" (click)="retry()">RIPROVA CONNESSIONE</button>
         </article>
       </div>
 
       <div *ngIf="posts$ | async as posts; else loadingState">
         <div class="feed-grid">
           <article *ngFor="let post of posts" class="post-card">
-            <header style="display: flex; align-items: center; justify-content: space-between; padding: 1rem;">
+            <header style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem;">
               <div style="display: flex; align-items: center; gap: 12px;">
                 <img [src]="post.photoURL || 'https://ui-avatars.com/api/?name=' + post.displayName + '&background=random'" 
-                     style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                     style="width: 32px; height: 32px; border-radius: 0; object-fit: cover; border: 1px solid var(--border-color);">
                 <div>
-                  <strong style="display: block;">{{ post.displayName }}</strong>
-                  <small class="secondary">{{ post.date | date:'short' }}</small>
+                  <strong style="display: block; font-size: 0.9rem;">{{ post.displayName }}</strong>
+                  <small style="opacity: 0.5; font-size: 0.7rem;">{{ post.date | date:'dd/MM/yyyy HH:mm' }}</small>
                 </div>
               </div>
               <details class="dropdown" *ngIf="post.uid === user.uid">
-                <summary class="outline secondary" style="border: none; padding: 0 8px;">⋮</summary>
+                <summary class="outline secondary" style="border: none; padding: 0 8px; font-size: 0.75rem;">OPZIONI</summary>
                 <ul>
-                  <li><a href="javascript:void(0)" (click)="socialService.deletePost(post.id)" style="color: var(--del-color);">Elimina post</a></li>
+                  <li><a href="javascript:void(0)" (click)="socialService.deletePost(post.id)" style="color: #ff4444; font-size: 0.75rem;">ELIMINA POST</a></li>
                 </ul>
               </details>
             </header>
-            <div style="padding: 0 1rem 1rem;">
-              <p style="white-space: pre-wrap; margin: 0; font-size: 1.1rem;">{{ post.text }}</p>
+            <div style="padding: 0.5rem 1rem 1rem;">
+              <p style="white-space: pre-wrap; margin: 0; font-size: 0.95rem; border-left: 1px solid var(--border-color); padding-left: 1rem;">{{ post.text }}</p>
             </div>
           </article>
         </div>
 
-        <article *ngIf="posts.length === 0" style="text-align: center; border: 2px dashed var(--secondary);">
-          <p class="secondary">Ancora nessun post. Rompi il ghiaccio!</p>
+        <article *ngIf="posts.length === 0" style="text-align: center; border: 1px dashed var(--border-color);">
+          <p class="secondary" style="font-size: 0.85rem;">Nessun post trovato nel database.</p>
         </article>
       </div>
 
       <ng-template #loadingState>
         <article *ngIf="!error" aria-busy="true" style="text-align: center; border: none; box-shadow: none;">
-          Caricamento feed...
+          <span class="cursor">CARICAMENTO FEED...</span>
         </article>
       </ng-template>
 
