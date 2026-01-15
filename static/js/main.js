@@ -64,17 +64,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- MASONRY LAYOUT LOGIC ---
+    const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            const item = entry.target;
+            const container = item.parentElement;
+            if (container) {
+                resizeGridItem(container, item);
+            }
+        }
+    });
+
     function resizeGridItem(container, item) {
         if (!container || !item) return;
         const styles = window.getComputedStyle(container);
         const rowHeight = parseInt(styles.getPropertyValue('grid-auto-rows')) || 10;
         const rowGap = parseInt(styles.getPropertyValue('grid-row-gap')) || parseInt(styles.getPropertyValue('gap')) || 0;
         
-        // Reset span per calcolare l'altezza naturale
-        item.style.gridRowEnd = 'auto';
-        const contentHeight = item.getBoundingClientRect().height;
-        const rowSpan = Math.ceil((contentHeight + rowGap) / (rowHeight + rowGap));
-        item.style.gridRowEnd = 'span ' + rowSpan;
+        // Calcoliamo l'altezza del contenuto interno senza resettare gridRowEnd
+        // Usiamo scrollHeight del contenitore interno o misuriamo i figli
+        const content = item.firstElementChild;
+        if (!content) return;
+        
+        const contentHeight = content.getBoundingClientRect().height;
+        const padding = parseInt(window.getComputedStyle(item).paddingTop) + parseInt(window.getComputedStyle(item).paddingBottom);
+        const totalHeight = contentHeight + padding;
+        
+        const rowSpan = Math.ceil((totalHeight + rowGap) / (rowHeight + rowGap));
+        
+        // Applichiamo lo span solo se diverso per evitare reflow inutili
+        const currentSpan = item.style.gridRowEnd;
+        const newSpan = `span ${rowSpan}`;
+        if (currentSpan !== newSpan) {
+            item.style.gridRowEnd = newSpan;
+        }
     }
 
     function resizeAllGridItems(container) {
@@ -109,111 +131,93 @@ document.addEventListener('DOMContentLoaded', () => {
         const canEdit = !!post.can_edit;
         const canDelete = !!post.can_delete;
         
-        if (postTypeClass === 'post-media-only') {
-            const actionsHtml = (canEdit || canDelete) ? `<button class="btn-icon no-rotate post-actions" type="button" data-id="${post.id}" data-can-edit="${canEdit ? 1 : 0}" data-can-delete="${canDelete ? 1 : 0}" title="Azioni">⋮</button>` : '';
-            div.innerHTML = `
-                <div class="media-only-layout">
-                    <div class="media-only-media" onclick="openLightboxMedia('${post.Content}', 'image')">
+        const actionsHtml = (canEdit || canDelete) ? `<button class="btn-icon no-rotate post-actions" type="button" data-id="${post.id}" data-can-edit="${canEdit ? 1 : 0}" data-can-delete="${canDelete ? 1 : 0}" title="Azioni">⋮</button>` : '';
+
+        let mediaHtml = '';
+        if (hasMedia) {
+            mediaHtml = `
+                <div class="post-media-section">
+                    <div class="media-container" onclick="openLightboxMedia('${post.Content}', 'image')">
                         <img src="${post.Content}" alt="Post media" onload="this.closest('.terminal-card').dispatchEvent(new Event('mediaLoaded'))">
                     </div>
-                    <div class="media-only-info">
-                        <div class="media-only-meta">
-                            <div class="media-only-date">[${dateStr}]</div>
-                            <div class="media-only-user" onclick="window.location.href='/${post.user}'" style="cursor:pointer;">@${post.user}</div>
-                        </div>
-                        <div class="media-only-bottom">
-                            <div class="media-only-score">PAPARELL: <span class="score-value" data-id="${post.id}">${displayScore}</span></div>
-                            <div class="media-only-buttons">
-                                <button class="btn-score btn-plus ${userVote === 1 ? 'active' : ''}" data-id="${post.id}" data-vote="1">+</button>
-                                <button class="btn-score btn-minus ${userVote === -1 ? 'active' : ''}" data-id="${post.id}" data-vote="-1">-</button>
-                            </div>
-                            <div style="padding: 0 8px 8px 8px; display: flex; justify-content: flex-end;">
-                                ${actionsHtml}
-                            </div>
-                        </div>
-                    </div>
                 </div>
+                <div class="post-divider"></div>
             `;
-        } else {
-            let mediaHtml = '';
-            if (hasMedia) {
-                mediaHtml = `
-                    <div class="post-media-section">
-                        <div class="media-container" onclick="openLightboxMedia('${post.Content}', 'image')">
-                            <img src="${post.Content}" alt="Post media" onload="this.closest('.terminal-card').dispatchEvent(new Event('mediaLoaded'))">
-                        </div>
-                    </div>
-                    <div class="post-divider"></div>
-                `;
-            }
+        }
 
-            let captionHtml = '';
-            if (hasText) {
-                const textHtml = formatText(post.Description);
-                const shouldTruncate = (post.Description || '').length > 220;
-                captionHtml = `
-                    <div class="post-caption ${shouldTruncate ? '' : 'expanded'}" data-post-id="${post.id}">
-                        <div class="post-caption-text">${textHtml}</div>
-                        ${shouldTruncate ? `<button class="caption-toggle" type="button" data-post-id="${post.id}">…</button>` : ''}
-                    </div>
-                `;
-            }
-
-            const actionsHtml = (canEdit || canDelete) ? `<button class="btn-icon no-rotate post-actions" type="button" data-id="${post.id}" data-can-edit="${canEdit ? 1 : 0}" data-can-delete="${canDelete ? 1 : 0}" title="Azioni">⋮</button>` : '';
-
-            div.innerHTML = `
-                <div class="post-layout">
-                    ${mediaHtml}
-                    <div class="post-content-section">
-                        <div class="post-header">
-                            <span class="user" style="cursor: pointer;" onclick="window.location.href='/${post.user}'">@${post.user}</span>
-                            <div class="header-right">
-                                <span class="time">[${dateStr}]</span>
-                                <span class="score">PAPARELL: <span class="score-value" data-id="${post.id}">${displayScore}</span></span>
-                                ${actionsHtml}
-                            </div>
-                        </div>
-                        ${captionHtml}
-                    </div>
-                    <div class="post-side-controls">
-                        <div class="controls-stack">
-                            <button class="btn-score btn-plus ${userVote === 1 ? 'active' : ''}" data-id="${post.id}" data-vote="1">+</button>
-                            <button class="btn-score btn-minus ${userVote === -1 ? 'active' : ''}" data-id="${post.id}" data-vote="-1">-</button>
-                        </div>
-                    </div>
+        let captionHtml = '';
+        if (hasText) {
+            const textHtml = formatText(post.Description);
+            const shouldTruncate = (post.Description || '').length > 220;
+            captionHtml = `
+                <div class="post-caption ${shouldTruncate ? '' : 'expanded'}" data-post-id="${post.id}">
+                    <div class="post-caption-text">${textHtml}</div>
+                    ${shouldTruncate ? `<button class="caption-toggle" type="button" data-post-id="${post.id}">…</button>` : ''}
                 </div>
             `;
         }
 
+        div.innerHTML = `
+            <div class="post-layout">
+                ${mediaHtml}
+                <div class="post-content-section">
+                    <div class="post-header">
+                        <span class="user" style="cursor: pointer;" onclick="window.location.href='/${post.user}'">@${post.user}</span>
+                        <div class="header-right">
+                            <span class="time">[${dateStr}]</span>
+                            <span class="score">PAPARELL: <span class="score-value" data-id="${post.id}">${displayScore}</span></span>
+                            ${actionsHtml}
+                        </div>
+                    </div>
+                    ${captionHtml}
+                </div>
+                <div class="post-side-controls">
+                    <div class="controls-stack">
+                        <button class="btn-score btn-plus ${userVote === 1 ? 'active' : ''}" data-id="${post.id}" data-vote="1">+</button>
+                        <button class="btn-score btn-minus ${userVote === -1 ? 'active' : ''}" data-id="${post.id}" data-vote="-1">-</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
         const caption = div.querySelector('.post-caption');
         if (caption) caption.dataset.raw = post.Description || '';
 
-        // Trigger resize when media loads
-        div.addEventListener('mediaLoaded', () => {
-            const container = div.parentElement;
-            resizeGridItem(container, div);
-        });
+        // Osserva i cambiamenti di dimensione
+        resizeObserver.observe(div);
         
         return div;
     }
 
     function renderFeed(posts, clear = true) {
         if (!feedContainer) return;
-        if (clear) feedContainer.innerHTML = '';
+        if (clear) {
+            feedContainer.innerHTML = '';
+            // Reset scroll position if clearing
+            feedContainer.scrollTop = 0;
+        }
         
         posts.forEach(post => {
             const el = createPostElement(post);
             feedContainer.appendChild(el);
-            resizeGridItem(feedContainer, el);
+            // Il resize viene gestito dal ResizeObserver aggiunto in createPostElement
         });
     }
 
     // Scroll infinito
     if (feedContainer) {
+        let scrollTimeout;
         feedContainer.addEventListener('scroll', () => {
-            if (feedContainer.scrollTop + feedContainer.clientHeight >= feedContainer.scrollHeight - 100) {
-                fetchPosts();
-            }
+            if (scrollTimeout) return;
+            
+            scrollTimeout = setTimeout(() => {
+                if (feedContainer.scrollTop + feedContainer.clientHeight >= feedContainer.scrollHeight - 200) {
+                    if (!isLoading && hasMore) {
+                        fetchPosts();
+                    }
+                }
+                scrollTimeout = null;
+            }, 100);
         });
     }
 

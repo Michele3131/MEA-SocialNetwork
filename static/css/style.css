@@ -142,33 +142,18 @@ body, html {
 /* Post Internals */
 .post-layout {
     display: flex;
-    gap: 15px;
-    align-items: flex-start;
-    flex-wrap: wrap; /* Permette l'adattamento naturale */
+    gap: 0;
+    align-items: stretch;
+    height: 100%;
 }
 
 /* Media Section */
 .post-media-section {
-    width: 100%;
-    max-width: 180px; /* Ridotto per lasciare spazio al testo */
+    width: 200px;
     aspect-ratio: 1 / 1;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-}
-
-@media (max-width: 450px) {
-    .post-media-section {
-        max-width: 100%; /* Full width su schermi molto piccoli */
-    }
-}
-
-.post-media-only .post-media-section {
-   height: auto;
-   width: 100%;
-   max-width: 200px;
-   aspect-ratio: 1/1;
-   margin-bottom: 0;
 }
 
 .media-container {
@@ -197,109 +182,17 @@ body, html {
 .post-divider {
     width: 1px;
     background-color: var(--border-color);
-    margin: 0 5px;
-    height: 100%;
+    margin: 0 15px; /* Spazio-Linea-Spazio */
+    flex-shrink: 0;
 }
 
 /* Content Section */
 .post-content-section {
     flex-grow: 1;
-    flex-basis: 200px; /* Suggerisce una larghezza di base prima del wrap */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-width: 150px; /* Spazio minimo per il testo */
-}
-
-.media-only-layout {
-    display: flex;
-    width: 100%;
-    align-items: stretch;
-    flex-wrap: wrap; /* Adattamento per media-only */
-}
-
-.media-only-media {
-    width: 100%;
-    max-width: 180px;
-    aspect-ratio: 1 / 1;
-    height: auto;
-    flex-shrink: 0;
-    border-right: 1px solid var(--border-color);
-    cursor: zoom-in;
-    background: #000;
-}
-
-@media (max-width: 450px) {
-    .media-only-media {
-        max-width: 100%;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-    }
-}
-
-.media-only-media img,
-.media-only-media video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.media-only-info {
-    flex: 1;
-    flex-basis: 120px;
-    min-width: 100px;
-    display: flex;
-    flex-direction: column;
-}
-
-.media-only-meta {
-    padding: 8px 8px 0 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.media-only-user {
-    font-weight: 700;
-    font-size: 0.85rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--text-primary);
-}
-
-.media-only-date {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    white-space: nowrap;
-}
-
-.media-only-bottom {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.media-only-score {
-    padding-left: 8px;
-    font-size: 0.75rem;
-    color: var(--text-primary);
-}
-
-.media-only-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 0 8px 8px 8px; /* Added padding to bottom and left/right */
-}
-
-.media-only-buttons .btn-score {
-    width: 100%;
-    height: 36px; /* Slightly taller */
-    margin-left: 0;
-    font-size: 1.1rem;
+    justify-content: flex-start;
+    min-width: 0;
 }
 
 /* Expanded Trend Styling */
