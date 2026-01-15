@@ -133,34 +133,40 @@ body, html {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding: 10px;
+    padding: 12px;
     height: fit-content;
     grid-row-end: span 1;
+    min-height: 140px; /* Garantisce una dimensione minima */
 }
 
 /* Post Internals */
 .post-layout {
     display: flex;
     gap: 15px;
-    align-items: stretch;
+    align-items: flex-start;
+    flex-wrap: wrap; /* Permette l'adattamento naturale */
 }
 
 /* Media Section */
 .post-media-section {
-    width: 220px;
-    height: 220px;
+    width: 100%;
+    max-width: 180px; /* Ridotto per lasciare spazio al testo */
+    aspect-ratio: 1 / 1;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
 }
 
-/* For Media Only posts, we want media left (square) and content right.
-   So we remove the previous overrides that made it top-bottom. 
-   The default .post-media-section is already square and height 100%. */
+@media (max-width: 450px) {
+    .post-media-section {
+        max-width: 100%; /* Full width su schermi molto piccoli */
+    }
+}
+
 .post-media-only .post-media-section {
-   /* Resetting to default behavior or ensuring it fits */
-   height: 100%;
-   width: auto;
+   height: auto;
+   width: 100%;
+   max-width: 200px;
    aspect-ratio: 1/1;
    margin-bottom: 0;
 }
@@ -198,25 +204,37 @@ body, html {
 /* Content Section */
 .post-content-section {
     flex-grow: 1;
+    flex-basis: 200px; /* Suggerisce una larghezza di base prima del wrap */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-width: 0; /* Fix flex overflow */
+    min-width: 150px; /* Spazio minimo per il testo */
 }
 
 .media-only-layout {
     display: flex;
     width: 100%;
     align-items: stretch;
+    flex-wrap: wrap; /* Adattamento per media-only */
 }
 
 .media-only-media {
-    width: 220px;
-    height: 220px;
+    width: 100%;
+    max-width: 180px;
+    aspect-ratio: 1 / 1;
+    height: auto;
     flex-shrink: 0;
     border-right: 1px solid var(--border-color);
     cursor: zoom-in;
     background: #000;
+}
+
+@media (max-width: 450px) {
+    .media-only-media {
+        max-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
 }
 
 .media-only-media img,
@@ -229,7 +247,8 @@ body, html {
 
 .media-only-info {
     flex: 1;
-    min-width: 0;
+    flex-basis: 120px;
+    min-width: 100px;
     display: flex;
     flex-direction: column;
 }
@@ -304,7 +323,7 @@ body, html {
     color: var(--text-secondary);
     flex-shrink: 0;
     gap: 10px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap; /* Permette il wrap se lo spazio è poco */
 }
 .post-header .user {
     color: var(--text-primary);
@@ -315,7 +334,8 @@ body, html {
     display: flex;
     align-items: center;
     gap: 10px;
-    white-space: nowrap;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
  .post-header .time {
     white-space: nowrap;
@@ -431,13 +451,14 @@ body, html {
 
 /* Right-side controls column */
 .post-side-controls {
-    width: 15%; /* Leggermente più largo per bottoni migliori */
-    min-width: 80px;
+    width: auto;
+    flex-basis: 50px;
+    min-width: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     flex-shrink: 0;
 }
 

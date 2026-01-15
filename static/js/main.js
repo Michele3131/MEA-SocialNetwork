@@ -69,8 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const styles = window.getComputedStyle(container);
         const rowHeight = parseInt(styles.getPropertyValue('grid-auto-rows')) || 10;
         const rowGap = parseInt(styles.getPropertyValue('grid-row-gap')) || parseInt(styles.getPropertyValue('gap')) || 0;
-        const contentHeight = item.scrollHeight;
-        const rowSpan = Math.max(1, Math.ceil((contentHeight + rowGap) / (rowHeight + rowGap)));
+        
+        // Reset span per calcolare l'altezza naturale
+        item.style.gridRowEnd = 'auto';
+        const contentHeight = item.getBoundingClientRect().height;
+        const rowSpan = Math.ceil((contentHeight + rowGap) / (rowHeight + rowGap));
         item.style.gridRowEnd = 'span ' + rowSpan;
     }
 
