@@ -117,7 +117,7 @@ body, html {
 /* FEED CONTAINER GRID - MASONRY STYLE */
 .feed-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
     grid-auto-rows: 10px;
     gap: 15px;
     padding-right: 5px;
@@ -135,8 +135,20 @@ body, html {
     overflow: hidden;
     padding: 12px;
     height: fit-content;
-    grid-row-end: span 1;
-    min-height: 140px; /* Garantisce una dimensione minima */
+    grid-row-end: span 26; /* Default standard height per media (220px + padding) */
+    min-width: 320px;
+}
+
+.terminal-card.post-text-only {
+    grid-row-end: span 13; /* Metà esatta */
+    min-height: 120px;
+}
+
+.terminal-card.post-standard, 
+.terminal-card.post-media-only {
+    grid-row-end: span 26;
+    min-height: 250px;
+    min-width: 440px; /* Adattato alla nuova colonna da 450px */
 }
 
 /* Post Internals */
@@ -145,11 +157,13 @@ body, html {
     gap: 0;
     align-items: stretch;
     height: 100%;
+    min-width: 0;
 }
 
 /* Media Section */
 .post-media-section {
-    width: 200px;
+    width: 180px; /* Dimensione fissa per tutti i media */
+    height: 180px;
     aspect-ratio: 1 / 1;
     flex-shrink: 0;
     display: flex;
@@ -192,7 +206,8 @@ body, html {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    min-width: 0;
+    min-width: 180px; /* Impedisce la sovrapposizione degli elementi */
+    padding-left: 5px;
 }
 
 /* Expanded Trend Styling */
@@ -245,7 +260,7 @@ body, html {
     margin: 0;
     white-space: normal;
     display: -webkit-box;
-    -webkit-line-clamp: 4;
+    -webkit-line-clamp: 5; /* Aumentato leggermente */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -253,13 +268,13 @@ body, html {
  }
 
  .post-text-only .post-caption-text {
-    -webkit-line-clamp: 7;
+    -webkit-line-clamp: 4; /* Ridotto per adattarsi alla metà altezza */
  }
 
  .post-caption.expanded .post-caption-text {
     -webkit-line-clamp: unset;
-    max-height: 240px;
-    overflow: auto;
+    max-height: 300px;
+    overflow-y: auto;
  }
 
  .caption-toggle {
@@ -267,17 +282,21 @@ body, html {
     right: 0;
     bottom: -2px;
     border: none;
-    background: transparent;
-    color: var(--text-secondary);
+    background: var(--panel-bg); /* Sfondo per coprire il testo sotto */
+    color: var(--highlight); /* Colore d'accento (bianco/highlight) */
     font-family: var(--font-stack);
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     line-height: 1;
-    padding: 0 2px;
+    padding: 0 4px;
     cursor: pointer;
+    font-weight: bold;
+    box-shadow: -5px 0 10px var(--panel-bg); /* Sfumatura per l'effetto dissolvenza */
+    z-index: 10;
  }
 
  .caption-toggle:hover {
-    color: var(--highlight);
+    color: var(--text-primary);
+    text-decoration: underline;
  }
 
 /* Ensure Left Alignment for Text-Only Posts */

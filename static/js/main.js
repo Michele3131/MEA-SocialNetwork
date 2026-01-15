@@ -80,18 +80,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const rowHeight = parseInt(styles.getPropertyValue('grid-auto-rows')) || 10;
         const rowGap = parseInt(styles.getPropertyValue('grid-row-gap')) || parseInt(styles.getPropertyValue('gap')) || 0;
         
-        // Calcoliamo l'altezza del contenuto interno senza resettare gridRowEnd
-        // Usiamo scrollHeight del contenitore interno o misuriamo i figli
-        const content = item.firstElementChild;
-        if (!content) return;
+        // Se è un post solo testo, vogliamo che sia esattamente la metà (span 12)
+        // Se è un post con media, vogliamo che sia lo standard (span 24)
+        // A meno che non sia espanso
+        const isExpanded = item.querySelector('.post-caption.expanded');
+        let rowSpan;
+
+        if (isExpanded) {
+            const content = item.firstElementChild;
+            const contentHeight = content.getBoundingClientRect().height;
+            const padding = parseInt(window.getComputedStyle(item).paddingTop) + parseInt(window.getComputedStyle(item).paddingBottom);
+            rowSpan = Math.ceil((contentHeight + padding + rowGap) / (rowHeight + rowGap));
+        } else {
+            if (item.classList.contains('post-text-only')) {
+                rowSpan = 13;
+            } else {
+                rowSpan = 26;
+            }
+        }
         
-        const contentHeight = content.getBoundingClientRect().height;
-        const padding = parseInt(window.getComputedStyle(item).paddingTop) + parseInt(window.getComputedStyle(item).paddingBottom);
-        const totalHeight = contentHeight + padding;
-        
-        const rowSpan = Math.ceil((totalHeight + rowGap) / (rowHeight + rowGap));
-        
-        // Applichiamo lo span solo se diverso per evitare reflow inutili
         const currentSpan = item.style.gridRowEnd;
         const newSpan = `span ${rowSpan}`;
         if (currentSpan !== newSpan) {
