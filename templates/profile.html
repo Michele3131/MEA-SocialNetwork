@@ -20,7 +20,7 @@
     </div>
 
     <!-- Main App Container Centered -->
-    <div class="d-flex align-items-center justify-content-center vh-100">
+    <div class="d-flex align-items-start justify-content-center min-vh-100 py-4">
         <div class="app-wrapper" style="max-width: 1000px; margin: auto;">
             <div class="row h-100 m-0">
                 
@@ -32,7 +32,11 @@
                         <div class="profile-header-container mb-4">
                             <div class="terminal-header mb-3">
                                 <span>> USER_PROFILE: {{ user.Nickname }}</span>
-                                <a href="/" class="btn-icon" style="text-decoration: none; font-size: 0.9rem;" title="Torna al Feed">← ESC</a>
+                                <a href="/" class="btn-icon no-rotate" style="text-decoration: none; line-height: 0;" title="Home">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"></path>
+                                    </svg>
+                                </a>
                             </div>
                             
                             <div class="d-flex align-items-start gap-4">
@@ -57,8 +61,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="post-divider mb-4"></div>
 
                         <!-- Lista Post Utente -->
                         <div class="terminal-header mb-2">
@@ -85,15 +87,21 @@
                                     </div>
                                     
                                     {% if post.Description %}
-                                    <div class="post-caption" style="font-size: 0.9rem; -webkit-line-clamp: 3;">
+                                    <div class="post-caption" style="font-size: 0.9rem; -webkit-line-clamp: 3; cursor: pointer;" onclick='openLightboxText({{ post.Description|tojson }}, {{ user.Nickname|tojson }}, {{ post.created_at|tojson }})'>
                                         {{ post.Description }}
                                     </div>
                                     {% endif %}
 
                                     <div class="post-footer mt-2 pt-2 border-top" style="border-color: var(--border-color) !important;">
-                                        <div class="score-container d-flex align-items-center gap-2">
-                                            <span class="score-value" style="font-weight: bold;">{{ post.likes or 0 }}</span>
-                                            <span class="stat-label" style="font-size: 0.6rem;">PAPARELL</span>
+                                        <div class="d-flex justify-content-between align-items-center gap-3">
+                                            <div class="score-container d-flex align-items-center gap-2">
+                                                <span class="score-value" data-id="{{ post.id }}" style="font-weight: bold;">{{ post.likes or 0 }}</span>
+                                                <span class="stat-label" style="font-size: 0.6rem;">PAPARELL</span>
+                                            </div>
+                                            <div class="controls-stack" style="display:flex; gap:6px;">
+                                                <button class="btn-score btn-plus {% if post.user_vote == 1 %}active{% endif %}" data-id="{{ post.id }}" data-vote="1">+</button>
+                                                <button class="btn-score btn-minus {% if post.user_vote == -1 %}active{% endif %}" data-id="{{ post.id }}" data-vote="-1">-</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -118,13 +126,45 @@
         const lightboxWrapper = lightbox.querySelector('.lightbox-content-wrapper');
         const lightboxClose = document.querySelector('.lightbox-close');
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function formatText(str) {
+            const safe = escapeHtml(str || '');
+            return safe.replace(/\n{2,}/g, '<br><br>').replace(/\n/g, '<br>');
+        }
+
         function openLightboxMedia(src, type) {
             lightboxWrapper.innerHTML = '';
             if (type === 'image') {
                 const img = document.createElement('img');
                 img.src = src;
+                img.className = 'lightbox-media';
                 lightboxWrapper.appendChild(img);
             }
+            lightbox.classList.add('active');
+        }
+
+        function openLightboxText(text, user, time) {
+            lightboxWrapper.innerHTML = `
+                <div class="terminal-card post-standard" style="width: 100%; max-width: 700px; margin: auto;">
+                    <div class="post-content-section">
+                        <div class="post-header">
+                            <span class="user">@${escapeHtml(user)}</span>
+                            <span class="time">[${escapeHtml(time)}]</span>
+                        </div>
+                        <div class="post-caption" style="max-height: none; -webkit-line-clamp: unset;">
+                            ${formatText(text)}
+                        </div>
+                    </div>
+                </div>
+            `;
             lightbox.classList.add('active');
         }
 
@@ -147,6 +187,43 @@
 
         window.addEventListener('load', resizeAllProfileItems);
         window.addEventListener('resize', resizeAllProfileItems);
+
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-score');
+            if (!btn) return;
+
+            const postId = btn.getAttribute('data-id');
+            const vote = parseInt(btn.getAttribute('data-vote'));
+
+            try {
+                const response = await fetch(`/like/${postId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ vote: vote })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const scoreEl = document.querySelector(`.score-value[data-id="${postId}"]`);
+                    if (scoreEl) scoreEl.textContent = data.new_score;
+
+                    const parent = btn.closest('.controls-stack');
+                    const plusBtn = parent.querySelector('.btn-plus');
+                    const minusBtn = parent.querySelector('.btn-minus');
+                    plusBtn.classList.toggle('active', data.user_vote === 1);
+                    minusBtn.classList.toggle('active', data.user_vote === -1);
+
+                    resizeAllProfileItems();
+                } else if (response.status === 401) {
+                    window.location.href = '/access';
+                } else {
+                    const errorData = await response.json();
+                    if (errorData.error) alert(errorData.error);
+                }
+            } catch (error) {
+                console.error('Errore nel voto:', error);
+            }
+        });
 
         lightboxClose.onclick = () => lightbox.classList.remove('active');
         lightbox.onclick = (e) => { if (e.target === lightbox) lightbox.classList.remove('active'); };

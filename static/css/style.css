@@ -110,6 +110,9 @@ body, html {
     color: var(--highlight);
     transform: rotate(90deg);
 }
+.btn-icon.no-rotate:hover {
+    transform: none;
+}
 
 /* FEED CONTAINER GRID - MASONRY STYLE */
 .feed-container {
@@ -605,6 +608,17 @@ body, html {
     position: relative;
     max-height: 90vh;
     overflow-y: auto;
+}
+
+.lightbox-content-wrapper img,
+.lightbox-content-wrapper video {
+    max-width: 100%;
+    max-height: 80vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
 }
 
 .lightbox-text {

@@ -5,11 +5,25 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+_secret = os.environ.get("FLASK_SECRET_KEY") or os.environ.get("SECRET_KEY")
+if not _secret:
+    _secret_path = os.path.join(BASE_DIR, ".flask_secret_key")
+    try:
+        if os.path.exists(_secret_path):
+            with open(_secret_path, "r", encoding="utf-8") as f:
+                _secret = f.read().strip() or None
+        if not _secret:
+            _secret = os.urandom(32).hex()
+            with open(_secret_path, "w", encoding="utf-8") as f:
+                f.write(_secret)
+    except Exception:
+        _secret = os.urandom(24)
+app.secret_key = _secret
 
 # Path assoluto per PythonAnywhere
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16MB max
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -42,16 +56,77 @@ def get_db_connection():
 
 def init_db():
     conn = get_db_connection()
-    if conn:
-        cur = conn.cursor()
+    if not conn:
+        return
+
+    cur = conn.cursor()
+
+    def table_exists(table_name: str) -> bool:
+        cur.execute(
+            """
+            SELECT COUNT(*)
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+            """,
+            (DB_CONFIG["database"], table_name),
+        )
+        return (cur.fetchone() or (0,))[0] > 0
+
+    def column_exists(table_name: str, column_name: str) -> bool:
+        cur.execute(
+            """
+            SELECT COUNT(*)
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s
+            """,
+            (DB_CONFIG["database"], table_name, column_name),
+        )
+        return (cur.fetchone() or (0,))[0] > 0
+
+    try:
+        if table_exists("users") and not column_exists("users", "last_seen_likes"):
+            cur.execute("ALTER TABLE users ADD COLUMN last_seen_likes INT DEFAULT 0")
+
+        if table_exists("users") and not column_exists("users", "created_at"):
+            cur.execute("ALTER TABLE users ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
+
+        if table_exists("posts") and not column_exists("posts", "likes"):
+            cur.execute("ALTER TABLE posts ADD COLUMN likes INT DEFAULT 0")
+
+        if table_exists("posts") and not column_exists("posts", "created_at"):
+            cur.execute("ALTER TABLE posts ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
+
+        if table_exists("posts") and not column_exists("posts", "Content") and column_exists("posts", "content"):
+            cur.execute("ALTER TABLE posts CHANGE COLUMN content Content VARCHAR(255)")
+
+        if table_exists("posts") and not column_exists("posts", "Description") and column_exists("posts", "description"):
+            cur.execute("ALTER TABLE posts CHANGE COLUMN description Description TEXT")
+
+        if not table_exists("likes"):
+            cur.execute(
+                """
+                CREATE TABLE likes (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    user_id INT NOT NULL,
+                    post_id INT NOT NULL,
+                    vote INT NOT NULL,
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id),
+                    UNIQUE KEY user_post_unique (user_id, post_id),
+                    KEY post_id (post_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                """
+            )
+
+        conn.commit()
+    except Exception:
         try:
-            cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_likes INT DEFAULT 0")
-            conn.commit()
-        except:
+            conn.rollback()
+        except Exception:
             pass
-        finally:
-            cur.close()
-            conn.close()
+    finally:
+        cur.close()
+        conn.close()
 
 # Esegui inizializzazione all'avvio
 init_db()
@@ -156,17 +231,36 @@ def get_posts():
     if conn is None: return {"error": "db error"}, 500
     cur = conn.cursor(dictionary=True)
     
-    # Recupera i post con le info dell'utente e il voto dell'utente loggato
-    cur.execute("""
-        SELECT posts.*, users.Nickname as user, users.Avatar as avatar,
-               (SELECT vote FROM likes WHERE likes.post_id = posts.id AND likes.user_id = %s) as user_vote
-        FROM posts 
-        JOIN users ON posts.user_id = users.id 
-        ORDER BY created_at DESC
-        LIMIT %s OFFSET %s
-    """, (user_id, limit, offset))
-    
-    posts = cur.fetchall()
+    posts = []
+    try:
+        cur.execute(
+            """
+            SELECT posts.*, users.Nickname as user, users.Avatar as avatar,
+                   (SELECT vote FROM likes WHERE likes.post_id = posts.id AND likes.user_id = %s) as user_vote
+            FROM posts
+            JOIN users ON posts.user_id = users.id
+            ORDER BY posts.created_at DESC
+            LIMIT %s OFFSET %s
+            """,
+            (user_id, limit, offset),
+        )
+        posts = cur.fetchall()
+    except Exception:
+        try:
+            cur.execute(
+                """
+                SELECT posts.*, users.Nickname as user, users.Avatar as avatar,
+                       0 as user_vote
+                FROM posts
+                JOIN users ON posts.user_id = users.id
+                ORDER BY posts.id DESC
+                LIMIT %s OFFSET %s
+                """,
+                (limit, offset),
+            )
+            posts = cur.fetchall()
+        except Exception:
+            posts = []
     cur.close()
     conn.close()
     return {"posts": posts}
@@ -211,20 +305,36 @@ def get_trends():
     if conn is None: return {"error": "db error"}, 500
     cur = conn.cursor(dictionary=True)
     
-    query = """
-        SELECT posts.*, users.Nickname as user 
-        FROM posts 
-        JOIN users ON posts.user_id = users.id 
-    """
-    params = []
-    
-    if time_filter == "24h":
-        query += " WHERE posts.created_at >= NOW() - INTERVAL 1 DAY "
-    
-    query += " ORDER BY likes DESC LIMIT 5"
-    
-    cur.execute(query, params)
-    trends = cur.fetchall()
+    trends = []
+    try:
+        query = """
+            SELECT posts.*, users.Nickname as user
+            FROM posts
+            JOIN users ON posts.user_id = users.id
+        """
+        params = []
+
+        if time_filter == "24h":
+            query += " WHERE posts.created_at >= NOW() - INTERVAL 1 DAY "
+
+        query += " ORDER BY likes DESC LIMIT 5"
+
+        cur.execute(query, params)
+        trends = cur.fetchall()
+    except Exception:
+        try:
+            cur.execute(
+                """
+                SELECT posts.*, users.Nickname as user
+                FROM posts
+                JOIN users ON posts.user_id = users.id
+                ORDER BY likes DESC, id DESC
+                LIMIT 5
+                """
+            )
+            trends = cur.fetchall()
+        except Exception:
+            trends = []
     cur.close()
     conn.close()
     return {"trends": trends}
@@ -285,6 +395,7 @@ def profile(username):
     conn = get_db_connection()
     if conn is None: return redirect("/")
     cur = conn.cursor(dictionary=True)
+    viewer_id = session.get("user_id")
     
     cur.execute("SELECT * FROM users WHERE Nickname = %s", (username,))
     user = cur.fetchone()
@@ -298,14 +409,32 @@ def profile(username):
     cur.execute("SELECT SUM(likes) as total_score FROM posts WHERE user_id = %s", (user["id"],))
     total_score = cur.fetchone()["total_score"] or 0
 
-    cur.execute("""
-        SELECT p.*, u.Nickname, u.Avatar
-        FROM posts p
-        JOIN users u ON p.user_id = u.id
-        WHERE u.id = %s
-        ORDER BY p.created_at DESC
-    """, (user["id"],))
-    posts = cur.fetchall()
+    posts = []
+    try:
+        cur.execute(
+            """
+            SELECT p.*, u.Nickname, u.Avatar,
+                   (SELECT vote FROM likes WHERE likes.post_id = p.id AND likes.user_id = %s) as user_vote
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            WHERE u.id = %s
+            ORDER BY p.created_at DESC
+            """,
+            (viewer_id, user["id"]),
+        )
+        posts = cur.fetchall()
+    except Exception:
+        cur.execute(
+            """
+            SELECT p.*, u.Nickname, u.Avatar, 0 as user_vote
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            WHERE u.id = %s
+            ORDER BY p.id DESC
+            """,
+            (user["id"],),
+        )
+        posts = cur.fetchall()
     
     cur.close()
     conn.close()

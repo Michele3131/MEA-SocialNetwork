@@ -34,6 +34,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const response = await fetch(`/api/posts?page=${currentPage}&limit=10`);
+            if (!response.ok) {
+                hasMore = false;
+                if (feedContainer) {
+                    feedContainer.innerHTML = `
+                        <div class="text-center p-4 text-secondary" style="grid-column: 1 / -1;">
+                            > ERRORE_CARICAMENTO_POST
+                        </div>
+                    `;
+                }
+                return;
+            }
             const data = await response.json();
             
             if (data.posts && data.posts.length > 0) {
@@ -231,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lightboxWrapper.innerHTML = '';
         const img = document.createElement('img');
         img.src = src;
+        img.className = 'lightbox-media';
         lightboxWrapper.appendChild(img);
         lightbox.classList.add('active');
     };
@@ -381,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="trending-item p-2 border-bottom-theme" style="cursor:pointer;" onclick="window.location.href='/${post.user}'">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-secondary" style="font-size: 0.8rem;">#${idx + 1} @${post.user}</span>
-                            <span class="badge-terminal">${post.likes} P</span>
+                            <span class="badge-terminal">${post.likes} PAPARELL</span>
                         </div>
                         <div class="text-truncate" style="font-size: 0.9rem;">
                             ${post.Description || 'Post multimediale'}
