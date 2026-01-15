@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "measn-679f0"
+  },
+  "targets": {
+    "measn-679f0": {
+      "hosting": {
+        "social-minimal": [
+          "measn"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

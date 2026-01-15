@@ -1,0 +1,40 @@
+/* You can add global styles to this file, and also import other style files */
+:root {
+  --primary-gradient: linear-gradient(45deg, #6366f1, #a855f7);
+  --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+body { 
+  transition: background-color 0.3s ease, color 0.3s ease; 
+  min-height: 100vh;
+}
+
+article { 
+  border-radius: 12px; 
+  box-shadow: var(--card-shadow); 
+  border: none; 
+}
+
+button:not(.outline) { 
+  background: var(--primary-gradient); 
+  border: none; 
+}
+
+.nav-container { 
+  backdrop-filter: blur(10px); 
+  background: rgba(255, 255, 255, 0.8); 
+  position: sticky; 
+  top: 0; 
+  z-index: 1000; 
+  border-bottom: 1px solid rgba(0,0,0,0.1); 
+}
+
+[data-theme='dark'] .nav-container { 
+  background: rgba(18, 25, 31, 0.8); 
+  border-bottom: 1px solid rgba(255,255,255,0.1); 
+}
+
+/* Utilities */
+.error-msg article {
+  border: 2px solid var(--pico-del-color);
+}
