@@ -1,72 +1,67 @@
-# MEA Social Network - Concept & Documentation
+# MEA SOCIETAS
 
-## 1. Visione Concettuale
-MEA (Minimal Essential Aesthetics) è un social network progettato per ridurre il rumore visivo e cognitivo tipico delle piattaforme moderne. L'interfaccia si ispira all'estetica dei terminali e del brutalismo digitale, ponendo il contenuto al centro dell'esperienza senza distrazioni superflue.
+Link alla piattaforma: [https://measn.web.app](https://measn.web.app)
 
-### Principi Chiave:
-- **Minimalismo Radicale**: Eliminazione di ogni elemento decorativo non funzionale.
-- **Ordine Geometrico**: Layout a griglia rigorosa con dimensioni fisse per garantire armonia visiva.
-- **Focus sul Contenuto**: Il testo e i media sono i protagonisti assoluti.
-- **Interazione Essenziale**: Punteggi e feedback ridotti all'osso per scoraggiare la dipendenza da "vanity metrics".
+## Funzionamento del sito
+MEA Societas è un social network minimale basato su architettura Single Page Application (SPA).
 
-## 2. Struttura dell'Interfaccia
+### Architettura Tecnica
+- **Framework**: Angular 21 (Standalone Components).
+- **Backend**: Firebase (Authentication per la gestione utenti e Cloud Firestore per il database real-time).
+- **Routing**: Gestione client-side dei percorsi per navigazione fluida senza ricaricamento della pagina.
+- **Interfaccia**: Design orientato al terminale con font monospace (JetBrains Mono) e layout a contrasto elevato.
 
-Il sito è costruito come una Single Page Application (SPA) contenuta in un wrapper fisso che occupa gran parte dello schermo, simulando una finestra applicativa o un terminale dedicato.
+### Flusso Operativo
+1. **Autenticazione**: Accesso obbligatorio tramite Google Auth per la creazione del profilo.
+2. **Feed**: Visualizzazione cronologica dei post recuperati in tempo reale da Firestore.
+3. **Interazione**: Creazione di post testuali e gestione del profilo utente.
+4. **Persistenza**: Sincronizzazione automatica dei dati tra i client connessi.
 
-### Layout Principale (Desktop)
-Il layout è diviso in due colonne principali all'interno di un contenitore centrato con margini uniformi:
+## Guida alla configurazione
 
-1.  **Colonna Sinistra (Feed)**:
-    - Occupa la maggior parte dello spazio.
-    - Contiene lo stream dei post.
-    - Scorrimento interno per mantenere l'intestazione e la struttura fisse.
+### Prerequisiti
+- Node.js (versione 18 o superiore consigliata).
+- Firebase CLI (`npm install -g firebase-tools`).
 
-2.  **Colonna Destra (Utility)**:
-    - **Pannello Comandi (Alto)**: Accesso rapido a funzionalità chiave (Tema, Nuovo Post, Profilo, Cerca).
-    - **Notifiche (Centro)**: Lista testuale e minimale delle attività recenti.
-    - **Tendenze (Basso)**: Lista di hashtag popolari, filtrabili per periodo (Sempre / Ultime 24h).
+### Installazione Locale
+1. Clonare il repository.
+2. Installare le dipendenze:
+   ```powershell
+   npm install --legacy-peer-deps
+   ```
+   *Nota: Il flag `--legacy-peer-deps` è necessario per risolvere i conflitti tra le versioni sperimentali di Angular e Firebase.*
 
-## 3. Design dei Post
+### Configurazione Ambiente
+Creare il file `src/environments/environment.development.ts` con le proprie credenziali Firebase:
+```typescript
+export const environment = {
+  firebase: {
+    apiKey: "TUA_API_KEY",
+    authDomain: "TUO_DOMINIO.firebaseapp.com",
+    projectId: "TUO_PROJECT_ID",
+    storageBucket: "TUO_BUCKET.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID",
+    measurementId: "MEASUREMENT_ID"
+  }
+};
+```
 
-Ogni post è racchiuso in una "card" terminale con bordi netti. Esistono tre tipologie di visualizzazione, gestite automaticamente in base al contenuto:
+### Comandi Principali
+- **Avvio Sviluppo**: `npm start` (accessibile su `localhost:4200`).
+- **Build**: `npm run build`.
+- **Deploy**: `npx firebase deploy`.
 
-### A. Post Standard (Media + Testo)
-- **Dimensioni**: Altezza fissa standard (`240px`).
-- **Layout**: 
-    - Sinistra: Media (Immagine/Video) in formato quadrato 1:1.
-    - Centro: Linea divisoria verticale.
-    - Destra: Header (Utente, Data, Ora), Didascalia troncata, Statistiche.
-- **Espansione**: Cliccando sul testo o sul media, si apre un Lightbox per la fruizione completa.
+## Spiegazione delle scelte progettuali
 
-### B. Post Solo Testo
-- **Dimensioni**: Altezza dimezzata (`120px`) per ottimizzare lo spazio.
-- **Layout**: Tutto il contenuto parte da sinistra.
-- **Visualizzazione**: Testo troncato a 2 righe con possibilità di espansione.
+### Estetica Terminal Prompt
+La scelta di un'interfaccia ispirata al terminale mira a eliminare le distrazioni cognitive tipiche dei social network moderni. L'uso del font JetBrains Mono e di una struttura a riga di comando forza l'utente a focalizzarsi sul contenuto testuale piuttosto che sugli elementi decorativi.
 
-### C. Post Solo Media
-- **Dimensioni**: Larghezza dimezzata (50%) mantenendo l'altezza standard.
-- **Layout**: Due post di questo tipo si affiancano automaticamente sulla stessa riga.
-- **Contenuto**: Media a tutto schermo (nel riquadro) con header minimale e controlli in sovraimpressione o in calce.
+### Palette Monocromatica (Bianco e Nero)
+Originariamente più complessa, la palette è stata semplificata a puro bianco e nero per massimizzare la leggibilità e l'accessibilità. Questa scelta stilistica si allinea ai principi del brutalismo digitale, garantendo al contempo una navigazione riposante per la vista.
 
-## 4. Funzionalità Specifiche
+### Sicurezza e Git
+I file di configurazione contenenti le API Key sono esclusi dal sistema di versionamento tramite `.gitignore`. Questa è una scelta obbligatoria per prevenire l'esposizione di credenziali sensibili in repository pubblici, mantenendo la flessibilità di configurazione locale tramite file non tracciati.
 
-### Sistema di Punteggio (Score)
-Al posto dei classici "Mi Piace", MEA utilizza un sistema di **Score** numerico.
-- **Controlli**: Due pulsanti `+` e `-` posti all'estremità destra del post.
-- **Logica**: L'utente può incrementare o decrementare il valore del contenuto, promuovendo la qualità piuttosto che la sola popolarità virale.
-
-### Visualizzazione Data/Ora
-Ogni post riporta un timestamp preciso `[YYYY-MM-DD HH:MM]`, richiamando i log di sistema.
-
-### Modalità Chiaro/Scuro (Theme)
-Un pulsante "TEMA" nel pannello comandi inverte la palette cromatica:
-- **Dark Mode (Default)**: Sfondo nero profondo `#0a0a0a`, testo grigio/bianco, accentuazioni minimali. Ideale per riposare la vista.
-- **Light Mode**: Sfondo bianco/grigio chiaro, testo scuro ad alto contrasto.
-
-### Lightbox
-Un visualizzatore modale a tutto schermo per immagini, video e testi lunghi, permettendo di focalizzarsi sul singolo contenuto senza il rumore del feed.
-
-## 5. Stato del Progetto
-
-- **index_demo.html**: Versione dimostrativa con dati mock (fittizi) per visualizzare il layout e le interazioni (JS incluso in `js/main.js`).
-- **index.html**: Versione "Production Ready", pulita e pronta per essere collegata a un backend reale (JS in `js/app.js`).
+### Risoluzione Dipendenze
+L'uso di `--legacy-peer-deps` durante l'installazione è una scelta tecnica dettata dall'utilizzo di versioni bleeding-edge di Angular (v21), garantendo la compatibilità con il kit di sviluppo Firebase durante la fase di transizione del framework.
