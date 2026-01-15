@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for, session, render_template
+from flask import Flask, request, redirect, url_for, session, render_template, jsonify
 import mysql.connector
 from mysql.connector import Error
 import os
@@ -27,6 +27,10 @@ app.secret_key = _secret
 app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16MB max
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+DEFAULT_ADMIN_EMAIL = os.environ.get("MEA_ADMIN_EMAIL") or "admin@mea.local"
+DEFAULT_ADMIN_PASSWORD = os.environ.get("MEA_ADMIN_PASSWORD") or "mea_admin"
+DEFAULT_ADMIN_NICKNAME = os.environ.get("MEA_ADMIN_NICKNAME") or "admin"
 
 # Assicurati che la cartella upload esista
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -90,6 +94,9 @@ def init_db():
         if table_exists("users") and not column_exists("users", "created_at"):
             cur.execute("ALTER TABLE users ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
 
+        if table_exists("users") and not column_exists("users", "role"):
+            cur.execute("ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'")
+
         if table_exists("posts") and not column_exists("posts", "likes"):
             cur.execute("ALTER TABLE posts ADD COLUMN likes INT DEFAULT 0")
 
@@ -118,6 +125,26 @@ def init_db():
                 """
             )
 
+        if table_exists("users") and column_exists("users", "role"):
+            cur.execute(
+                "SELECT id FROM users WHERE Email = %s OR Nickname = %s LIMIT 1",
+                (DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_NICKNAME),
+            )
+            existing_admin = cur.fetchone()
+            if not existing_admin:
+                cur.execute(
+                    """
+                    INSERT INTO users (Nickname, Email, Date_of_birth, Sex, Password, Avatar, role)
+                    VALUES (%s, %s, NULL, NULL, %s, %s, 'admin')
+                    """,
+                    (
+                        DEFAULT_ADMIN_NICKNAME,
+                        DEFAULT_ADMIN_EMAIL,
+                        DEFAULT_ADMIN_PASSWORD,
+                        f"https://api.dicebear.com/7.x/pixel-art/svg?seed={DEFAULT_ADMIN_NICKNAME}",
+                    ),
+                )
+
         conn.commit()
     except Exception:
         try:
@@ -130,6 +157,27 @@ def init_db():
 
 # Esegui inizializzazione all'avvio
 init_db()
+
+def get_current_role(conn, user_id):
+    if not user_id:
+        return "guest"
+    if session.get("role"):
+        return session.get("role")
+    role = "user"
+    try:
+        cur = conn.cursor(dictionary=True)
+        cur.execute("SELECT role FROM users WHERE id = %s", (user_id,))
+        row = cur.fetchone()
+        if row and row.get("role"):
+            role = row["role"]
+        cur.close()
+    except Exception:
+        role = "user"
+    session["role"] = role
+    return role
+
+def is_admin_role(role: str) -> bool:
+    return (role or "").lower() == "admin"
 
 @app.route("/")
 def index():
@@ -207,8 +255,13 @@ def login():
         return redirect(url_for("access", error="Errore database"))
         
     cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT id, Nickname, Password FROM users WHERE Email = %s", (email,))
-    user = cur.fetchone()
+    user = None
+    try:
+        cur.execute("SELECT id, Nickname, Password, role FROM users WHERE Email = %s", (email,))
+        user = cur.fetchone()
+    except Exception:
+        cur.execute("SELECT id, Nickname, Password FROM users WHERE Email = %s", (email,))
+        user = cur.fetchone()
     cur.close()
     conn.close()
 
@@ -217,6 +270,7 @@ def login():
 
     session["user_id"] = user["id"]
     session["nickname"] = user["Nickname"]
+    session["role"] = user.get("role", "user")
 
     return redirect(url_for("index"))
 
@@ -229,6 +283,8 @@ def get_posts():
 
     conn = get_db_connection()
     if conn is None: return {"error": "db error"}, 500
+    viewer_role = get_current_role(conn, user_id)
+    viewer_is_admin = is_admin_role(viewer_role)
     cur = conn.cursor(dictionary=True)
     
     posts = []
@@ -263,6 +319,11 @@ def get_posts():
             posts = []
     cur.close()
     conn.close()
+    for post in posts:
+        owner_id = post.get("user_id")
+        can_manage = bool(user_id) and (viewer_is_admin or owner_id == user_id)
+        post["can_edit"] = can_manage
+        post["can_delete"] = can_manage
     return {"posts": posts}
 
 @app.route("/api/notifications")
@@ -396,7 +457,18 @@ def profile(username):
     if conn is None: return redirect("/")
     cur = conn.cursor(dictionary=True)
     viewer_id = session.get("user_id")
-    
+    viewer = None
+    viewer_role = "guest"
+    if viewer_id:
+        try:
+            cur.execute("SELECT id, Nickname, Avatar, role FROM users WHERE id = %s", (viewer_id,))
+            viewer = cur.fetchone()
+            viewer_role = (viewer or {}).get("role") or "user"
+        except Exception:
+            cur.execute("SELECT id, Nickname, Avatar FROM users WHERE id = %s", (viewer_id,))
+            viewer = cur.fetchone()
+            viewer_role = "user"
+
     cur.execute("SELECT * FROM users WHERE Nickname = %s", (username,))
     user = cur.fetchone()
 
@@ -436,10 +508,18 @@ def profile(username):
         )
         posts = cur.fetchall()
     
+    viewer_is_admin = is_admin_role(viewer_role)
+    is_self = bool(viewer_id) and viewer_id == user.get("id")
+    for post in posts:
+        owner_id = post.get("user_id")
+        can_manage = bool(viewer_id) and (viewer_is_admin or owner_id == viewer_id)
+        post["can_edit"] = can_manage
+        post["can_delete"] = can_manage
+
     cur.close()
     conn.close()
 
-    return render_template("profile.html", user=user, posts=posts, total_score=total_score)
+    return render_template("profile.html", user=user, posts=posts, total_score=total_score, viewer=viewer, is_self=is_self, is_admin=(viewer_is_admin and is_self))
 
 @app.route("/like/<int:post_id>", methods=["POST"])
 def like(post_id):
@@ -502,6 +582,200 @@ def like(post_id):
     finally:
         cur.close()
         conn.close()
+
+@app.route("/delete-post/<int:post_id>", methods=["POST"])
+def delete_post(post_id):
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user_id = session["user_id"]
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "DB error"}), 500
+
+    viewer_role = get_current_role(conn, user_id)
+    viewer_is_admin = is_admin_role(viewer_role)
+    cur = conn.cursor(dictionary=True)
+
+    try:
+        cur.execute("SELECT user_id FROM posts WHERE id = %s", (post_id,))
+        row = cur.fetchone()
+        if not row:
+            return jsonify({"error": "Post non trovato"}), 404
+        if not viewer_is_admin and row.get("user_id") != user_id:
+            return jsonify({"error": "Non autorizzato"}), 403
+        cur.execute("DELETE FROM posts WHERE id = %s", (post_id,))
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return jsonify({"error": "Errore eliminazione post"}), 400
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route("/edit-post/<int:post_id>", methods=["POST"])
+def edit_post(post_id):
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user_id = session["user_id"]
+    description = None
+    if request.is_json:
+        payload = request.get_json(silent=True) or {}
+        description = payload.get("description")
+    if description is None:
+        description = request.form.get("description")
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "DB error"}), 500
+
+    viewer_role = get_current_role(conn, user_id)
+    viewer_is_admin = is_admin_role(viewer_role)
+    cur = conn.cursor(dictionary=True)
+
+    try:
+        cur.execute("SELECT user_id FROM posts WHERE id = %s", (post_id,))
+        row = cur.fetchone()
+        if not row:
+            return jsonify({"error": "Post non trovato"}), 404
+        if not viewer_is_admin and row.get("user_id") != user_id:
+            return jsonify({"error": "Non autorizzato"}), 403
+
+        cleaned = (description or "").strip()
+        cur.execute("UPDATE posts SET Description = %s WHERE id = %s", (cleaned if cleaned else None, post_id))
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return jsonify({"error": "Errore modifica post"}), 400
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route("/settings/delete-my-posts", methods=["POST"])
+def delete_my_posts():
+    if "user_id" not in session:
+        return redirect(url_for("access"))
+
+    user_id = session["user_id"]
+    conn = get_db_connection()
+    if conn is None:
+        return redirect(request.referrer or "/")
+    cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM posts WHERE user_id = %s", (user_id,))
+        conn.commit()
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+    finally:
+        cur.close()
+        conn.close()
+    return redirect(request.referrer or f"/{session.get('nickname')}")
+
+@app.route("/settings/delete-profile", methods=["POST"])
+def delete_profile():
+    if "user_id" not in session:
+        return redirect(url_for("access"))
+
+    phrase = (request.form.get("confirm_phrase") or "").strip().lower()
+    if phrase != "mea societas socialis":
+        return redirect(request.referrer or f"/{session.get('nickname')}")
+
+    user_id = session["user_id"]
+    conn = get_db_connection()
+    if conn is None:
+        return redirect(url_for("access", error="Errore database"))
+    cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        conn.commit()
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        cur.close()
+        conn.close()
+        return redirect(url_for("access", error="Errore eliminazione profilo"))
+    cur.close()
+    conn.close()
+
+    session.clear()
+    return redirect(url_for("access", success="Profilo eliminato"))
+
+@app.route("/admin/delete-all-posts", methods=["POST"])
+def admin_delete_all_posts():
+    if "user_id" not in session:
+        return redirect(url_for("access"))
+
+    user_id = session["user_id"]
+    conn = get_db_connection()
+    if conn is None:
+        return redirect(request.referrer or "/")
+    role = get_current_role(conn, user_id)
+    if not is_admin_role(role):
+        conn.close()
+        return redirect(request.referrer or "/")
+
+    cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM posts")
+        conn.commit()
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+    finally:
+        cur.close()
+        conn.close()
+    return redirect(request.referrer or "/")
+
+@app.route("/admin/delete-all-users", methods=["POST"])
+def admin_delete_all_users():
+    if "user_id" not in session:
+        return redirect(url_for("access"))
+
+    user_id = session["user_id"]
+    conn = get_db_connection()
+    if conn is None:
+        return redirect(request.referrer or "/")
+    role = get_current_role(conn, user_id)
+    if not is_admin_role(role):
+        conn.close()
+        return redirect(request.referrer or "/")
+
+    cur = conn.cursor(dictionary=True)
+    try:
+        cur.execute("SELECT id FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1")
+        admin_row = cur.fetchone()
+        admin_id = (admin_row or {}).get("id")
+        if not admin_id:
+            return redirect(request.referrer or "/")
+        cur2 = conn.cursor()
+        cur2.execute("DELETE FROM users WHERE id <> %s", (admin_id,))
+        conn.commit()
+        cur2.close()
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+    finally:
+        cur.close()
+        conn.close()
+    return redirect(request.referrer or "/")
 
 @app.route("/success")
 def success():

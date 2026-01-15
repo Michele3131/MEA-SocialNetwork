@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `Date_of_birth` date DEFAULT NULL,
   `Sex` varchar(10) DEFAULT NULL,
   `Avatar` varchar(255) DEFAULT NULL,
+  `role` varchar(20) NOT NULL DEFAULT 'user',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_seen_likes` int(11) DEFAULT 0,
   PRIMARY KEY (`id`),

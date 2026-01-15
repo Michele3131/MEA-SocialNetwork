@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLoading = false;
     let hasMore = true;
     const feedContainer = document.getElementById('feed-container');
+    const profilePostsContainer = document.getElementById('profile-posts-container');
     const loadingIndicator = document.getElementById('loading-indicator');
 
     // --- FUNZIONI DI CARICAMENTO ---
@@ -63,19 +64,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- MASONRY LAYOUT LOGIC ---
-    function resizeGridItem(item) {
-        const rowHeight = parseInt(window.getComputedStyle(feedContainer).getPropertyValue('grid-auto-rows'));
-        const rowGap = parseInt(window.getComputedStyle(feedContainer).getPropertyValue('grid-row-gap'));
-        const contentHeight = item.querySelector('.post-layout, .media-only-layout').getBoundingClientRect().height;
-        const rowSpan = Math.ceil((contentHeight + rowGap) / (rowHeight + rowGap));
+    function resizeGridItem(container, item) {
+        if (!container || !item) return;
+        const styles = window.getComputedStyle(container);
+        const rowHeight = parseInt(styles.getPropertyValue('grid-auto-rows')) || 10;
+        const rowGap = parseInt(styles.getPropertyValue('grid-row-gap')) || parseInt(styles.getPropertyValue('gap')) || 0;
+        const contentHeight = item.scrollHeight;
+        const rowSpan = Math.max(1, Math.ceil((contentHeight + rowGap) / (rowHeight + rowGap)));
         item.style.gridRowEnd = 'span ' + rowSpan;
     }
 
-    function resizeAllGridItems() {
-        if (!feedContainer) return;
-        const allItems = feedContainer.getElementsByClassName('terminal-card');
+    function resizeAllGridItems(container) {
+        if (!container) return;
+        const allItems = container.getElementsByClassName('terminal-card');
         for (let x = 0; x < allItems.length; x++) {
-            resizeGridItem(allItems[x]);
+            resizeGridItem(container, allItems[x]);
         }
     }
 
@@ -92,14 +95,19 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (!hasMedia && hasText) {
             postTypeClass = 'post-text-only';
         }
-
-        div.className = `terminal-card ${postTypeClass}`;
         
-        const dateStr = post.created_at || '2026-01-14';
+        div.className = `terminal-card ${postTypeClass}`;
+        div.dataset.postId = String(post.id);
+        div.dataset.description = post.Description || '';
+        
+        const dateStr = post.created_at || '';
         const displayScore = post.likes || 0;
         const userVote = post.user_vote || 0;
+        const canEdit = !!post.can_edit;
+        const canDelete = !!post.can_delete;
         
         if (postTypeClass === 'post-media-only') {
+            const actionsHtml = (canEdit || canDelete) ? `<button class="btn-icon no-rotate post-actions" type="button" data-id="${post.id}" data-can-edit="${canEdit ? 1 : 0}" data-can-delete="${canDelete ? 1 : 0}" title="Azioni">⋮</button>` : '';
             div.innerHTML = `
                 <div class="media-only-layout">
                     <div class="media-only-media" onclick="openLightboxMedia('${post.Content}', 'image')">
@@ -115,6 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="media-only-buttons">
                                 <button class="btn-score btn-plus ${userVote === 1 ? 'active' : ''}" data-id="${post.id}" data-vote="1">+</button>
                                 <button class="btn-score btn-minus ${userVote === -1 ? 'active' : ''}" data-id="${post.id}" data-vote="-1">-</button>
+                            </div>
+                            <div style="padding: 0 8px 8px 8px; display: flex; justify-content: flex-end;">
+                                ${actionsHtml}
                             </div>
                         </div>
                     </div>
@@ -136,12 +147,16 @@ document.addEventListener('DOMContentLoaded', () => {
             let captionHtml = '';
             if (hasText) {
                 const textHtml = formatText(post.Description);
+                const shouldTruncate = (post.Description || '').length > 220;
                 captionHtml = `
-                    <div class="post-caption" onclick="openLightboxText('${escapeHtml(post.Description).replace(/'/g, "\\'")}', '${post.user}', '${post.created_at}')">
-                        ${textHtml}
+                    <div class="post-caption ${shouldTruncate ? '' : 'expanded'}" data-post-id="${post.id}">
+                        <div class="post-caption-text">${textHtml}</div>
+                        ${shouldTruncate ? `<button class="caption-toggle" type="button" data-post-id="${post.id}">…</button>` : ''}
                     </div>
                 `;
             }
+
+            const actionsHtml = (canEdit || canDelete) ? `<button class="btn-icon no-rotate post-actions" type="button" data-id="${post.id}" data-can-edit="${canEdit ? 1 : 0}" data-can-delete="${canDelete ? 1 : 0}" title="Azioni">⋮</button>` : '';
 
             div.innerHTML = `
                 <div class="post-layout">
@@ -152,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="header-right">
                                 <span class="time">[${dateStr}]</span>
                                 <span class="score">PAPARELL: <span class="score-value" data-id="${post.id}">${displayScore}</span></span>
+                                ${actionsHtml}
                             </div>
                         </div>
                         ${captionHtml}
@@ -166,8 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
+        const caption = div.querySelector('.post-caption');
+        if (caption) caption.dataset.raw = post.Description || '';
+
         // Trigger resize when media loads
-        div.addEventListener('mediaLoaded', () => resizeGridItem(div));
+        div.addEventListener('mediaLoaded', () => {
+            const container = div.parentElement;
+            resizeGridItem(container, div);
+        });
         
         return div;
     }
@@ -179,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         posts.forEach(post => {
             const el = createPostElement(post);
             feedContainer.appendChild(el);
-            resizeGridItem(el);
+            resizeGridItem(feedContainer, el);
         });
     }
 
@@ -192,7 +214,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.addEventListener('resize', resizeAllGridItems);
+    window.addEventListener('resize', () => {
+        resizeAllGridItems(feedContainer);
+        resizeAllGridItems(profilePostsContainer);
+    });
+    resizeAllGridItems(profilePostsContainer);
 
     // --- FILTRI ---
     const btnMixed = document.getElementById('filter-mixed');
@@ -286,11 +312,21 @@ document.addEventListener('DOMContentLoaded', () => {
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     const query = input.value.toLowerCase();
-                    const filtered = postsData.filter(p => 
-                        (p.Description && p.Description.toLowerCase().includes(query)) || 
-                        (p.user && p.user.toLowerCase().includes(query))
-                    );
-                    renderFeed(filtered);
+                    if (feedContainer) {
+                        const filtered = postsData.filter(p => 
+                            (p.Description && p.Description.toLowerCase().includes(query)) || 
+                            (p.user && p.user.toLowerCase().includes(query))
+                        );
+                        renderFeed(filtered);
+                    } else if (profilePostsContainer) {
+                        const cards = Array.from(profilePostsContainer.querySelectorAll('.terminal-card'));
+                        cards.forEach((card) => {
+                            const text = (card.dataset.description || '').toLowerCase();
+                            const shouldShow = !query || text.includes(query);
+                            card.style.display = shouldShow ? '' : 'none';
+                        });
+                        resizeAllGridItems(profilePostsContainer);
+                    }
                     // Ripristina bottone
                     container.innerHTML = `<button class="btn-control" id="btn-search" style="width:100%; height:100%; border:1px solid var(--border-color);">CERCA</button>`;
                     document.getElementById('btn-search').addEventListener('click', handleSearch);
@@ -298,6 +334,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             input.addEventListener('blur', () => {
                 if (!input.value) {
+                    if (!feedContainer && profilePostsContainer) {
+                        const cards = Array.from(profilePostsContainer.querySelectorAll('.terminal-card'));
+                        cards.forEach((card) => { card.style.display = ''; });
+                        resizeAllGridItems(profilePostsContainer);
+                    }
                     container.innerHTML = `<button class="btn-control" id="btn-search" style="width:100%; height:100%; border:1px solid var(--border-color);">CERCA</button>`;
                     document.getElementById('btn-search').addEventListener('click', handleSearch);
                 }
@@ -308,8 +349,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- TEMA ---
     const btnTheme = document.getElementById('btn-theme');
     if (btnTheme) {
-        const themes = ['dark', 'light', 'matrix'];
+        const themes = ['dark', 'light'];
         let currentThemeIdx = localStorage.getItem('theme-idx') ? parseInt(localStorage.getItem('theme-idx')) : 0;
+        if (Number.isNaN(currentThemeIdx) || currentThemeIdx > 1) currentThemeIdx = 0;
         
         const updateThemeIcon = (idx) => {
             const theme = themes[idx];
@@ -317,8 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnTheme.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
             } else if (theme === 'light') {
                 btnTheme.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
-            } else {
-                btnTheme.innerHTML = '<span style="font-size: 12px; font-weight: bold;">[M]</span>';
             }
         };
 
@@ -375,6 +415,150 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Errore nel voto:', error);
+        }
+    });
+
+    function getCardDescription(card) {
+        if (!card) return '';
+        const raw = card.dataset.description || '';
+        const trimmed = raw.trim();
+        if (trimmed.startsWith('"') || trimmed.startsWith('[') || trimmed.startsWith('{')) {
+            try {
+                return JSON.parse(trimmed);
+            } catch (e) {
+                return raw;
+            }
+        }
+        return raw;
+    }
+
+    async function refreshAfterPostChange() {
+        if (feedContainer) {
+            await fetchPosts(true);
+            return;
+        }
+        window.location.reload();
+    }
+
+    function ensureEditModal() {
+        let modalEl = document.getElementById('modalEditPost');
+        if (!modalEl) {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `
+                <div class="modal fade" id="modalEditPost" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-theme bg-panel">
+                            <div class="modal-header border-bottom-theme">
+                                <h5 class="modal-title terminal-header m-0">> MODIFICA_POST</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="edit-post-description" class="form-label text-secondary">> TESTO</label>
+                                    <textarea class="form-control bg-dark text-white border-theme" id="edit-post-description" rows="5"></textarea>
+                                </div>
+                                <div class="text-end d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-terminal" id="btn-edit-save">SALVA</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(wrapper.firstElementChild);
+            modalEl = document.getElementById('modalEditPost');
+        }
+
+        const textarea = modalEl.querySelector('#edit-post-description');
+        const saveBtn = modalEl.querySelector('#btn-edit-save');
+        const modal = (window.bootstrap && window.bootstrap.Modal) ? new window.bootstrap.Modal(modalEl) : null;
+        return { modalEl, textarea, saveBtn, modal };
+    }
+
+    let editingPostId = null;
+    let isSavingEdit = false;
+
+    document.addEventListener('click', async (e) => {
+        const toggleBtn = e.target.closest('.caption-toggle');
+        if (toggleBtn) {
+            const caption = toggleBtn.closest('.post-caption');
+            if (!caption) return;
+            caption.classList.toggle('expanded');
+            const card = caption.closest('.terminal-card');
+            const container = card ? card.parentElement : null;
+            if (container && card) resizeGridItem(container, card);
+            return;
+        }
+
+        const actionsBtn = e.target.closest('.post-actions');
+        if (!actionsBtn) return;
+
+        const postId = actionsBtn.getAttribute('data-id');
+        const canEdit = actionsBtn.getAttribute('data-can-edit') === '1';
+        const canDelete = actionsBtn.getAttribute('data-can-delete') === '1';
+        const card = actionsBtn.closest('.terminal-card');
+
+        let choice = null;
+        if (canEdit && canDelete) choice = (window.prompt('Scrivi "m" per modificare o "e" per eliminare') || '').trim().toLowerCase();
+        else if (canEdit) choice = 'm';
+        else if (canDelete) choice = 'e';
+
+        if (choice === 'e' && canDelete) {
+            if (!window.confirm('Eliminare questo post?')) return;
+            try {
+                const res = await fetch(`/delete-post/${postId}`, { method: 'POST' });
+                if (res.status === 401) {
+                    window.location.href = '/access';
+                    return;
+                }
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    if (data && data.error) alert(data.error);
+                    return;
+                }
+                await refreshAfterPostChange();
+            } catch (err) {
+                console.error(err);
+            }
+            return;
+        }
+
+        if (choice === 'm' && canEdit) {
+            const { textarea, saveBtn, modal } = ensureEditModal();
+            editingPostId = postId;
+            textarea.value = getCardDescription(card);
+            if (modal) modal.show();
+            else textarea.focus();
+
+            if (!saveBtn.dataset.bound) {
+                saveBtn.dataset.bound = '1';
+                saveBtn.addEventListener('click', async () => {
+                    if (!editingPostId || isSavingEdit) return;
+                    isSavingEdit = true;
+                    try {
+                        const res = await fetch(`/edit-post/${editingPostId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ description: textarea.value })
+                        });
+                        if (res.status === 401) {
+                            window.location.href = '/access';
+                            return;
+                        }
+                        if (!res.ok) {
+                            const data = await res.json().catch(() => ({}));
+                            if (data && data.error) alert(data.error);
+                            return;
+                        }
+                        if (modal) modal.hide();
+                        await refreshAfterPostChange();
+                    } catch (err) {
+                        console.error(err);
+                    } finally {
+                        isSavingEdit = false;
+                    }
+                });
+            }
         }
     });
 
@@ -468,12 +652,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- INIZIALIZZAZIONE E REFRESH PERIODICO ---
-    fetchPosts();
-    fetchTrends();
-    fetchNotifications();
+    if (feedContainer) fetchPosts();
+    if (document.getElementById('trending-list')) fetchTrends();
+    if (document.getElementById('notification-list')) fetchNotifications();
 
     // Refresh notifiche ogni 60 secondi
-    setInterval(fetchNotifications, 60000);
+    if (document.getElementById('notification-list')) setInterval(fetchNotifications, 60000);
     // Refresh trends ogni 5 minuti
-    setInterval(fetchTrends, 300000);
+    if (document.getElementById('trending-list')) setInterval(fetchTrends, 300000);
 });
