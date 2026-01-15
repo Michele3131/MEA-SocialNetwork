@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
         <ul>
           <li>
             <a routerLink="/" class="contrast" style="text-decoration: none;">
-              <strong class="prompt">MEA SOCIETAS</strong><span class="cursor"></span>
+              <strong class="prompt">MEA</strong><span class="cursor"></span>
             </a>
           </li>
         </ul>

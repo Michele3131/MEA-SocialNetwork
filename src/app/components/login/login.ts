@@ -66,6 +66,7 @@ export class LoginComponent {
   loading = false;
   error = '';
 
+  /** Gestisce l'azione di autenticazione (Login o Registrazione) */
   async authAction() {
     this.loading = true;
     this.error = '';
@@ -83,6 +84,7 @@ export class LoginComponent {
     }
   }
 
+  /** Esegue il login rapido tramite Google */
   async loginWithGoogle() {
     this.loading = true;
     this.error = '';
