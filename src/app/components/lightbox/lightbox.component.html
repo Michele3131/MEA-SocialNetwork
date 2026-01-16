@@ -1,0 +1,6 @@
+<div *ngIf="imageUrl" class="lightbox-overlay" (click)="onClose()">
+  <div class="lightbox-content" (click)="$event.stopPropagation()">
+    <img [src]="imageUrl">
+    <button (click)="onClose()" class="lightbox-close">CHIUDI</button>
+  </div>
+</div>

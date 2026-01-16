@@ -1,0 +1,76 @@
+<div class="feed-container" *ngIf="socialService.user$ | async as user">
+  
+  <section>
+    <app-publish></app-publish>
+  </section>
+
+  <div *ngIf="error" class="error-msg">
+    <article>
+      <header><strong class="prompt">ERRORE DI SISTEMA</strong></header>
+      <p>{{ error }}</p>
+      <button class="outline" (click)="retry()">RIPROVA CONNESSIONE</button>
+    </article>
+  </div>
+
+  <div *ngIf="posts.length > 0; else noPosts">
+    <div class="feed-grid">
+      <article *ngFor="let post of posts" class="post-card-unified" [class.has-media]="post.imageUrl">
+        <div class="post-content-wrapper">
+          <!-- Media a sinistra se presente -->
+          <div *ngIf="post.imageUrl" class="post-media-aside" (click)="openLightbox(post.imageUrl)">
+            <img [src]="post.imageUrl" class="square-media">
+          </div>
+
+          <div class="post-info-main">
+            <header class="post-header-unified">
+              <div class="user-meta-unified">
+                <img [src]="post.photoURL || 'https://ui-avatars.com/api/?name=' + post.displayName + '&background=random'" 
+                     class="avatar-post-unified">
+                <div>
+                  <strong>{{ post.displayName }}</strong>
+                  <small class="post-date-meta">{{ post.date | date:'dd/MM/yyyy HH:mm' }}</small>
+                </div>
+              </div>
+              <button class="outline contrast btn-delete-post" *ngIf="post.uid === user.uid" 
+                      (click)="deletePost(post.id, post.uid, user.uid)">
+                ELIMINA
+              </button>
+            </header>
+
+            <div class="post-body-unified">
+              <p>{{ post.text }}</p>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Paginazione manuale -->
+    <div class="pagination-container">
+      <app-loading *ngIf="loading && !allLoaded" message="CARICAMENTO ALTRI POST"></app-loading>
+      
+      <button *ngIf="!loading && !allLoaded" 
+              class="outline secondary btn-load-more" 
+              (click)="loadMore()">
+        CARICA ALTRI POST
+      </button>
+
+      <p *ngIf="allLoaded && posts.length > 0" class="end-feed">Hai visualizzato tutti i post.</p>
+    </div>
+  </div>
+
+  <ng-template #noPosts>
+    <div *ngIf="loading; else emptyState">
+      <app-loading message="CARICAMENTO FEED"></app-loading>
+    </div>
+    <ng-template #emptyState>
+      <article class="empty-feed">
+        <p class="secondary">Nessun post trovato nel database.</p>
+      </article>
+    </ng-template>
+  </ng-template>
+
+</div>
+
+<!-- Lightbox -->
+<app-lightbox [imageUrl]="lightboxImage" (close)="lightboxImage = null"></app-lightbox>

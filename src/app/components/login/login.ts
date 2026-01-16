@@ -1,98 +1,58 @@
 import { Component, inject } from '@angular/core';
 import { SocialService } from '../../services/social';
+import { NotificationService } from '../../services/notification';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+/**
+ * Componente per la gestione dell'accesso e della registrazione utente.
+ * Implementa la logica di autenticazione tramite Firebase Auth.
+ */
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  template: `
-    <div class="container" style="max-width: 450px; margin-top: 50px;">
-      <article>
-        <header>
-          <strong class="prompt">ACCESSO RICHIESTO</strong><span class="cursor"></span>
-        </header>
-        
-        <form (submit)="$event.preventDefault(); authAction()">
-          <label *ngIf="isRegister">
-            <small style="opacity: 0.6;">[NOME COMPLETO]</small>
-            <input type="text" [(ngModel)]="name" name="name" required placeholder="Mario Rossi">
-          </label>
-          
-          <label>
-            <small style="opacity: 0.6;">[EMAIL]</small>
-            <input type="email" [(ngModel)]="email" name="email" required placeholder="mario@esempio.it">
-          </label>
-          
-          <label>
-            <small style="opacity: 0.6;">[PASSWORD]</small>
-            <input type="password" [(ngModel)]="password" name="password" required placeholder="********">
-          </label>
-
-          <button type="submit" [disabled]="loading" style="width: 100%;">
-            {{ loading ? 'VERIFICA IN CORSO...' : (isRegister ? 'REGISTRATI' : 'ACCEDI') }}
-          </button>
-        </form>
-
-        <p style="text-align: center; font-size: 0.75rem;">
-          <a href="javascript:void(0)" (click)="isRegister = !isRegister">
-            {{ isRegister ? 'VAI ALL\'ACCESSO' : 'NON HAI UN ACCOUNT? REGISTRATI' }}
-          </a>
-        </p>
-
-        <hr style="border-color: var(--border-color); opacity: 0.5;">
-
-        <button class="secondary outline" (click)="loginWithGoogle()" [disabled]="loading" style="width: 100%; font-size: 0.75rem;">
-          ACCEDI CON GOOGLE
-        </button>
-        
-        <p *ngIf="error" style="color: #ff4444; text-align: center; margin-top: 10px; font-size: 0.75rem;">
-          <strong class="prompt">ERRORE:</strong> {{ error }}
-        </p>
-      </article>
-    </div>
-  `
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.css'
 })
 export class LoginComponent {
+  /** Servizio per le operazioni di autenticazione */
   socialService = inject(SocialService);
+  /** Servizio per la gestione delle notifiche toast */
+  notificationService = inject(NotificationService);
+  /** Servizio per la navigazione tra le rotte */
   router = inject(Router);
 
+  /** Flag per switch tra modalità Login e Registrazione */
   isRegister = false;
+  /** Campo email del form */
   email = '';
+  /** Campo password del form */
   password = '';
+  /** Campo nome (solo per registrazione) */
   name = '';
+  /** Stato di caricamento durante l'azione asincrona */
   loading = false;
+  /** Messaggio di errore da visualizzare */
   error = '';
 
-  /** Gestisce l'azione di autenticazione (Login o Registrazione) */
+  /** Procedura di autenticazione: Login o Registrazione */
   async authAction() {
     this.loading = true;
     this.error = '';
     try {
       if (this.isRegister) {
         await this.socialService.registerWithEmail(this.email, this.password, this.name);
+        this.notificationService.success("Registrazione completata!");
       } else {
         await this.socialService.loginWithEmail(this.email, this.password);
+        this.notificationService.success("Bentornato!");
       }
       this.router.navigate(['/feed']);
     } catch (err: any) {
       this.error = "Errore: " + err.message;
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  /** Esegue il login rapido tramite Google */
-  async loginWithGoogle() {
-    this.loading = true;
-    this.error = '';
-    try {
-      await this.socialService.loginWithGoogle();
-      this.router.navigate(['/feed']);
-    } catch (err: any) {
-      this.error = "Errore: " + err.message;
+      this.notificationService.error(this.error);
     } finally {
       this.loading = false;
     }

@@ -1,0 +1,112 @@
+<div class="profile-container" *ngIf="socialService.user$ | async as user">
+  <!-- Testata Profilo (Ripristinata) -->
+  <header class="profile-header" *ngIf="socialService.userProfile$ | async as userProfile">
+    <div class="profile-nav-actions">
+      <a routerLink="/feed" class="outline secondary btn-nav-back">← TORNA AL FEED</a>
+      <div class="header-right-actions">
+        <button class="outline secondary btn-theme" (click)="toggleTheme()">
+          {{ isDarkMode ? 'LIGHT' : 'DARK' }}
+        </button>
+        <button class="outline contrast btn-logout" (click)="socialService.logout()">LOGOUT</button>
+      </div>
+    </div>
+
+    <div class="profile-header-grid">
+      <!-- Colonna Sinistra: Info Profilo -->
+      <div class="profile-info-col">
+        <div class="profile-main-info">
+          <div class="avatar-container" (click)="profileInput.click()">
+            <img [src]="userProfile.photoURL || 'https://ui-avatars.com/api/?name=' + (userProfile.displayName || userProfile.email || 'U') + '&background=random'" 
+                 class="profile-avatar">
+            <div class="edit-overlay">MODIFICA</div>
+          </div>
+          <input type="file" #profileInput (change)="onProfileFileSelected($event, user)" accept="image/*" style="display: none;">
+
+          <div class="user-details">
+            <div class="name-edit-group" *ngIf="!editingName">
+              <h2 class="prompt profile-display-name">{{ userProfile.displayName }}</h2>
+              <button class="outline contrast btn-edit-sm" (click)="startEditingName(userProfile.displayName)">EDIT</button>
+            </div>
+            
+            <div class="name-edit-group" *ngIf="editingName">
+              <input type="text" [(ngModel)]="tempName" class="edit-name-input-sm">
+              <div class="edit-actions-sm">
+                <button (click)="saveName(user)" class="btn-xs">OK</button>
+                <button (click)="editingName = false" class="outline secondary btn-xs">X</button>
+              </div>
+            </div>
+            
+            <p class="secondary profile-email-sm">{{ userProfile.email }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonna Destra: Publish Component -->
+      <div class="publish-col">
+        <app-publish></app-publish>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sezione post (ora sotto la griglia) -->
+  <section class="posts-section">
+    <h4 class="prompt section-title">I TUOI POST</h4>
+    
+    <div *ngIf="posts.length > 0; else noPostsState">
+      <div *ngIf="error" class="error-message">
+        <p>{{ error }}</p>
+        <button class="outline" (click)="socialService.logout()">Reset Sessione</button>
+      </div>
+
+      <div class="posts-list" *ngIf="!error">
+        <article *ngFor="let post of posts" class="post-card-unified" [class.has-media]="post.imageUrl">
+          <div class="post-content-wrapper">
+            <!-- Media a sinistra se presente -->
+            <div *ngIf="post.imageUrl" class="post-media-aside" (click)="openLightbox(post.imageUrl)">
+              <img [src]="post.imageUrl" class="square-media">
+            </div>
+
+            <div class="post-info-main">
+              <header class="post-header-unified">
+                <div class="user-meta-unified">
+                  <small class="post-date-meta">POST_ID: {{ post.id.substring(0,8) }} | {{ post.date | date:'dd/MM/yyyy HH:mm' }}</small>
+                </div>
+                <button *ngIf="post.uid === user.uid" class="outline contrast btn-delete-post" (click)="deletePost(post.id, post.uid, user.uid)">ELIMINA</button>
+              </header>
+              <div class="post-body-unified">
+                <p class="post-text">{{ post.text }}</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Paginazione manuale -->
+      <div class="pagination-container">
+        <app-loading *ngIf="loadingPosts && !allLoaded" message="CARICAMENTO ALTRI POST"></app-loading>
+        
+        <button *ngIf="!loadingPosts && !allLoaded" 
+                class="outline secondary btn-load-more" 
+                (click)="loadMore()">
+          CARICA ALTRI POST
+        </button>
+
+        <p *ngIf="allLoaded && posts.length > 0" class="end-feed">Hai visualizzato tutti i tuoi post.</p>
+      </div>
+    </div>
+
+    <ng-template #noPostsState>
+      <div *ngIf="loadingPosts; else emptyPosts">
+        <app-loading message="CARICAMENTO POST"></app-loading>
+      </div>
+      <ng-template #emptyPosts>
+        <article *ngIf="!error" class="empty-posts">
+          <p class="secondary">Nessun post pubblicato.</p>
+        </article>
+      </ng-template>
+    </ng-template>
+  </section>
+</div>
+
+<!-- Lightbox -->
+<app-lightbox [imageUrl]="lightboxImage" (close)="lightboxImage = null"></app-lightbox>

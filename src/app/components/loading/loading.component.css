@@ -1,0 +1,52 @@
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 0;
+  width: 100%;
+}
+
+.loading-content {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  color: var(--pico-contrast);
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+/* Linea del prompt intermittente all'inizio */
+.prompt-line::before {
+  content: ">";
+  margin-right: 0.5rem;
+  animation: blink 1s step-end infinite;
+}
+
+/* Animazione tre puntini consecutivi */
+.dots {
+  display: inline-block;
+  width: 1.5rem; /* Larghezza fissa per evitare salti nel layout */
+  text-align: left;
+}
+
+.dots::after {
+  content: "";
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% { content: ""; }
+  40% { content: "."; }
+  60% { content: ".."; }
+  80%, 100% { content: "..."; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Rimuovi l'attributo aria-busy di Pico per evitare conflitti visivi se usato */
+:host {
+  display: block;
+}

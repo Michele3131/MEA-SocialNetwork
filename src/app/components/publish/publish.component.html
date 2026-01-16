@@ -1,0 +1,18 @@
+<article class="publish-card">
+  <header><strong class="prompt">NUOVO POST</strong></header>
+  <textarea [(ngModel)]="newPost" placeholder="Cosa stai pensando?" [disabled]="publishing"
+            class="post-textarea"></textarea>
+  
+  <div *ngIf="selectedImage" class="image-preview-container">
+    <img [src]="selectedImage" class="image-preview">
+    <button (click)="removeImage()" class="outline contrast close-btn">X</button>
+  </div>
+
+  <footer class="publish-footer">
+    <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+    <button class="outline secondary btn-sm" (click)="fileInput.click()" [disabled]="publishing">FOTO</button>
+    <button (click)="publish()" [disabled]="publishing || (!newPost.trim() && !selectedImage)" class="btn-sm">
+      {{ publishing ? 'INVIO...' : 'PUBBLICA' }}
+    </button>
+  </footer>
+</article>

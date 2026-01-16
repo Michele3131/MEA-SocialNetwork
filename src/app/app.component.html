@@ -1,0 +1,14 @@
+<div class="app-layout" [class.profile-layout]="isProfilePage()">
+  <div class="content-left" [class.full-width]="isProfilePage()">
+    <main class="container-fluid">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+  
+  <aside class="sidebar-right" *ngIf="!isProfilePage()">
+    <app-navbar></app-navbar>
+  </aside>
+</div>
+
+<!-- Global Toasts -->
+<app-toasts></app-toasts>

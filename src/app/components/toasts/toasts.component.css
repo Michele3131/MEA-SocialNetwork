@@ -1,0 +1,43 @@
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    min-width: 250px;
+    padding: 12px 20px;
+    background: var(--pico-card-background-color);
+    border: 1px solid var(--pico-border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    cursor: pointer;
+    animation: slideIn 0.3s ease-out;
+    font-family: var(--font-family);
+    font-size: 0.85rem;
+}
+
+.toast.success { border-left: 4px solid #44ff44; }
+.toast.error { border-left: 4px solid #ff4444; }
+.toast.info { border-left: 4px solid var(--pico-primary); }
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toast-icon {
+    font-weight: bold;
+    font-family: monospace;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}

@@ -1,0 +1,38 @@
+<div class="container login-container">
+  <article>
+    <header>
+      <strong class="prompt">ACCESSO RICHIESTO</strong><span class="cursor"></span>
+    </header>
+    
+    <form (submit)="$event.preventDefault(); authAction()">
+      <label *ngIf="isRegister">
+        <small class="label-hint">[NOME COMPLETO]</small>
+        <input type="text" [(ngModel)]="name" name="name" required placeholder="Mario Rossi">
+      </label>
+      
+      <label>
+        <small class="label-hint">[EMAIL]</small>
+        <input type="email" [(ngModel)]="email" name="email" required placeholder="mario@esempio.it">
+      </label>
+      
+      <label>
+        <small class="label-hint">[PASSWORD]</small>
+        <input type="password" [(ngModel)]="password" name="password" required placeholder="********">
+      </label>
+
+      <button type="submit" [disabled]="loading" class="login-btn">
+        {{ loading ? 'ATTENDERE...' : (isRegister ? 'REGISTRATI' : 'ACCEDI') }}
+      </button>
+    </form>
+
+    <footer class="login-footer">
+      <a href="javascript:void(0)" (click)="isRegister = !isRegister">
+        {{ isRegister ? 'VAI ALL\'ACCESSO' : 'NON HAI UN ACCOUNT? REGISTRATI' }}
+      </a>
+      
+      <p *ngIf="error" class="error-text">
+        <strong class="prompt">ERRORE:</strong> {{ error }}
+      </p>
+    </footer>
+  </article>
+</div>

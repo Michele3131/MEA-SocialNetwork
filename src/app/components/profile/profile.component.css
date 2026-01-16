@@ -1,0 +1,199 @@
+.profile-header {
+  margin-bottom: 3rem;
+  padding: 0; /* Rimosso padding per allineare con i post */
+  background: transparent;
+  border-bottom: 1px solid var(--pico-border-color);
+}
+
+.profile-nav-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem 0; /* Padding verticale solo */
+  border-bottom: 1px solid var(--pico-border-color);
+}
+
+.header-right-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-nav-back, .btn-theme, .btn-logout {
+  width: auto;
+  margin: 0;
+  padding: 4px 12px;
+  font-size: 0.7rem;
+}
+
+.profile-header-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr; /* Colonna info più compatta */
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.profile-info-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-main-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-start; /* Allineato a sinistra del container */
+  text-align: left;
+  height: auto;
+}
+
+.avatar-container {
+  position: relative;
+  cursor: pointer;
+  width: 120px; /* Foto profilo più piccola per far spazio al box post */
+  height: 120px;
+  border: 1px solid var(--pico-border-color);
+  background: var(--pico-background-color);
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Allineato a sinistra */
+}
+
+.name-edit-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+.edit-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.2s;
+  text-transform: uppercase;
+}
+
+.avatar-container:hover .edit-overlay {
+  opacity: 1;
+}
+
+.profile-display-name {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.profile-email-sm {
+  font-size: 0.8rem;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.name-edit-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.btn-edit-sm {
+  padding: 2px 6px;
+  font-size: 0.6rem;
+  margin: 0;
+  width: auto;
+}
+
+.edit-name-input-sm {
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  margin: 0;
+}
+
+.edit-actions-sm {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-xs {
+  padding: 2px 6px;
+  font-size: 0.6rem;
+  margin: 0;
+}
+
+.posts-section {
+  padding: 0;
+  width: 100%;
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section-title {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.post-date-meta {
+  opacity: 0.6;
+  font-size: 0.7rem;
+  margin-left: 8px;
+}
+
+.btn-delete-post {
+  width: auto;
+  margin: 0;
+  padding: 2px 8px;
+  font-size: 0.6rem;
+  border-color: var(--mea-red) !important;
+  color: var(--mea-red) !important;
+}
+
+@media (max-width: 900px) {
+  .profile-header-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pagination-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 0;
+  gap: 1.5rem;
+}
+
+.btn-load-more {
+  max-width: 300px;
+  width: 100%;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+.end-feed {
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin-top: 1rem;
+}

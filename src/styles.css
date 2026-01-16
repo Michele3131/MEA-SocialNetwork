@@ -1,125 +1,157 @@
-/* You can add global styles to this file, and also import other style files */
+@import "@picocss/pico/css/pico.min.css";
+
 :root {
-  --primary: #ffffff;
-  --primary-hover: #e0e0e0;
-  --primary-focus: rgba(255, 255, 255, 0.1);
-  --primary-inverse: #000000;
-  
-  --background-color: #000000;
-  --card-background-color: #0a0a0a;
-  --text-color: #ffffff;
-  --secondary-text: #888888;
   --font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  
-  --card-shadow: none;
-  --border-color: #333333;
+  --pico-font-family: var(--font-family);
+  --pico-border-radius: 2px;
+  --pico-typography-spacing-vertical: 1.5rem;
+  --mea-red: #cf222e;
 }
 
+/* Override Pico colors to match MEA minimal aesthetic */
 [data-theme='light'] {
-  --primary: #000000;
-  --background-color: #ffffff;
-  --card-background-color: #fafafa;
-  --text-color: #000000;
-  --secondary-text: #666666;
-  --border-color: #dddddd;
+  --pico-background-color: #f0f2f5; /* Grigio chiaro di sfondo, addio bianco assoluto */
+  --pico-card-background-color: #ffffff; /* Card bianche per staccare dallo sfondo grigio */
+  --pico-color: #1c1e21;
+  --pico-muted-color: #606770;
+  --pico-border-color: #dddfe2;
+  --pico-primary: #1c1e21;
+  --pico-primary-hover: #000000;
+  --pico-primary-focus: rgba(0, 0, 0, 0.05);
+  --pico-primary-inverse: #ffffff;
+  --mea-red: #d93025;
+  --post-header-bg: #f8f9fa;
+  --sidebar-bg: #ffffff;
+}
+
+[data-theme='dark'], :root:not([data-theme='light']) {
+  --pico-background-color: #050505;
+  --pico-card-background-color: #121212;
+  --pico-color: #e4e6eb;
+  --pico-muted-color: #b0b3b8;
+  --pico-border-color: #242526;
+  --pico-primary: #e4e6eb;
+  --pico-primary-hover: #ffffff;
+  --pico-primary-focus: rgba(255, 255, 255, 0.1);
+  --pico-primary-inverse: #050505;
+  --mea-red: #f35369;
+  --post-header-bg: #1c1e21;
+  --sidebar-bg: #050505;
 }
 
 body { 
   font-family: var(--font-family);
-  background-color: var(--background-color);
-  color: var(--text-color);
   transition: background-color 0.2s ease, color 0.2s ease; 
-  min-height: 100vh;
-  line-height: 1.5;
 }
 
-article { 
-  background-color: var(--card-background-color);
-  border: 1px solid var(--border-color);
-  border-radius: 2px; 
-  padding: 1.5rem;
-  margin-bottom: 1rem;
+/* MEA Brand Aesthetics */
+.prompt {
+  color: var(--pico-primary);
 }
 
-button, [role="button"] { 
-  font-family: var(--font-family);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 1px solid var(--text-color) !important;
-  border-radius: 2px;
-  background: transparent !important;
-  color: var(--text-color) !important;
-  transition: all 0.15s ease;
-  font-size: 0.85rem;
-  padding: 0.5rem 1rem;
-}
-
-button:hover, [role="button"]:hover {
-  background: var(--text-color) !important;
-  color: var(--background-color) !important;
-}
-
-button.secondary, [role="button"].secondary {
-  border-color: var(--secondary-text) !important;
-  color: var(--secondary-text) !important;
-}
-
-button.secondary:hover, [role="button"].secondary:hover {
-  background: var(--secondary-text) !important;
-  color: var(--background-color) !important;
-}
-
-.nav-container { 
-  background: var(--background-color);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky; 
-  top: 0; 
-  z-index: 1000; 
-}
-
-/* Toned down prompt effect */
 .prompt::before {
   content: "> ";
   opacity: 0.5;
 }
 
-.cursor::after {
-  content: "_";
+.cursor {
+  display: inline-block;
+  width: 10px;
+  height: 1.2em;
+  background-color: var(--pico-primary);
+  margin-left: 5px;
+  vertical-align: middle;
   animation: blink 1.2s infinite;
 }
 
 @keyframes blink {
+  from, to { opacity: 1; }
   50% { opacity: 0; }
 }
 
-/* Inputs */
-input, textarea, select {
-  background-color: transparent !important;
-  border: 1px solid var(--border-color) !important;
-  color: var(--text-color) !important;
-  font-family: var(--font-family) !important;
-  border-radius: 0 !important;
+/* Global Post Styles - Unified Aesthetic */
+.post-card-unified {
+  margin-bottom: 1.5rem;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--pico-border-color);
+  background: var(--pico-card-background-color);
+  transition: transform 0.2s ease;
 }
 
-input:focus, textarea:focus {
-  border-color: var(--text-color) !important;
-  box-shadow: none !important;
+.post-card-unified:hover {
+  transform: translateY(-2px);
 }
 
-/* Links */
-a {
-  color: var(--text-color);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.post-content-wrapper {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
 }
 
-a:hover {
-  opacity: 0.7;
+.post-media-aside {
+  flex: 0 0 160px;
+  cursor: pointer;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-right: 1px solid var(--pico-border-color);
 }
 
+.square-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.post-media-aside:hover .square-media {
+  transform: scale(1.05);
+}
+
+.post-info-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.post-header-unified {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: var(--post-header-bg);
+  border-bottom: 1px solid var(--pico-border-color);
+}
+
+.post-body-unified {
+  padding: 1rem;
+  flex: 1;
+}
+
+.post-body-unified p {
+  white-space: pre-wrap;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.user-meta-unified {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-post-unified {
+  width: 40px;
+  height: 40px;
+  border-radius: 0;
+  object-fit: cover;
+  border: 1px solid var(--pico-color);
+  background: var(--pico-background-color);
+}
 .error-msg article {
-  border: 1px solid #ff4444;
-  color: #ff4444;
+  border: 1px solid var(--mea-red);
+  color: var(--mea-red);
 }
 
 

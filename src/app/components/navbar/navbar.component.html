@@ -1,0 +1,38 @@
+<div class="sidebar-content">
+  <!-- Brand Section -->
+  <div class="brand-section">
+    <a routerLink="/" class="contrast brand-link">
+      <strong class="prompt">MEA</strong><span class="cursor"></span>
+    </a>
+  </div>
+
+  <!-- Navigation Links -->
+  <nav class="sidebar-nav">
+    <ul class="nav-list">
+      <li *ngIf="socialService.user$ | async as user" class="user-meta-item">
+        <ng-container *ngIf="socialService.userProfile$ | async as userProfile">
+          <img [src]="userProfile.photoURL || 'https://ui-avatars.com/api/?name=' + (userProfile.displayName || userProfile.email || 'U') + '&background=random'" 
+               class="avatar-nav">
+          <span class="user-name">{{ userProfile.displayName }}</span>
+        </ng-container>
+      </li>
+      
+      <li><a routerLink="/feed" class="secondary nav-link">Feed</a></li>
+      <li><a routerLink="/profile" class="secondary nav-link">Profilo</a></li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <button class="outline secondary btn-full theme-toggle" (click)="toggleTheme()">
+        {{ isDarkMode ? 'LIGHT MODE' : 'DARK MODE' }}
+      </button>
+      
+      <button *ngIf="socialService.user$ | async" class="outline contrast btn-full" (click)="socialService.logout()">
+        LOGOUT
+      </button>
+      
+      <a *ngIf="!(socialService.user$ | async)" routerLink="/login" role="button" class="btn-full">
+        ACCEDI
+      </a>
+    </div>
+  </nav>
+</div>

@@ -7,19 +7,23 @@ MEA è un social network minimale basato su architettura Single Page Application
 
 ### Architettura Tecnica
 - **Framework**: Angular 21 (Standalone Components).
-- **Backend**: Firebase (Authentication per la gestione utenti e Cloud Firestore per il database real-time).
-- **Routing**: Gestione client-side dei percorsi per navigazione fluida senza ricaricamento della pagina.
-- **Interfaccia**: Design orientato al terminale con font monospace (JetBrains Mono) e layout a contrasto elevato.
+- **Backend**: Firebase (Authentication e Cloud Firestore).
+- **Stile**: [Pico.css](https://picocss.com/) (Classless CSS Framework) integrato per un layout responsivo e leggero.
+- **Design**: Minimalismo estremo, palette monocromatica, font JetBrains Mono per un'estetica "terminal-like".
+- **Modularità**: Architettura a componenti riutilizzabili (Toasts, Lightbox, Publish, Loading) per massimizzare la manutenibilità.
 
 ### Flusso Operativo
-1. **Autenticazione**: Accesso obbligatorio tramite Google Auth per la creazione del profilo.
-2. **Feed**: Visualizzazione cronologica dei post recuperati in tempo reale da Firestore.
-3. **Interazione**: Creazione di post testuali e gestione del profilo utente.
-4. **Persistenza**: Sincronizzazione automatica dei dati tra i client connessi.
+1. **Autenticazione**: Accesso obbligatorio tramite Email/Password per la creazione del profilo.
+2. **Feed**: Visualizzazione cronologica dei post recuperati in tempo reale da Firestore, ordinati dal più recente.
+3. **Interazione**: Creazione di post testuali con supporto alle immagini (auto-ridimensionate lato client).
+4. **Profilo**: Gestione dei propri post, aggiornamento del nome utente e della foto profilo.
+5. **Notifiche & Feedback**: Sistema di feedback integrato per ogni azione e componenti di caricamento animati (Loading) con estetica terminal.
 
 ## Guida alla configurazione e Portabilità
 
-Questa repository è configurata per essere "portabile". Non contiene file sensibili o legati alla sessione dell'autore originale. Seguire questi passaggi per ripristinare il progetto su una nuova macchina.
+Questa repository è configurata per essere "portabile".
+Non contiene file sensibili o legati alla sessione dell'autore originale.
+Seguire questi passaggi per ripristinare il progetto su una nuova macchina.
 
 ### 1. Prerequisiti
 - **Node.js**: Versione 18 o superiore.
@@ -34,7 +38,8 @@ npm install --legacy-peer-deps
 *Il flag `--legacy-peer-deps` è fondamentale per risolvere i conflitti di versione tra Angular 21 e il kit Firebase.*
 
 ### 3. Ripristino File Mancanti (Configurazione Ambiente)
-Per motivi di sicurezza, i file di ambiente non sono inclusi in Git. È necessario crearli manualmente:
+Per motivi di sicurezza, i file di ambiente non sono inclusi in Git.
+È necessario crearli manualmente:
 
 1. Creare la cartella `src/environments/` (se non esiste).
 2. Creare il file `src/environments/environment.development.ts`.
@@ -61,19 +66,20 @@ Per far funzionare il social network, è necessario inizializzare Firestore sul 
 
 ### 5. Avvio e Sessione
 Una volta configurato l'ambiente:
-- Eseguire `npm start` per avviare il server di sviluppo locale.
-- Il sito richiederà un nuovo login. La sessione è gestita localmente dal browser: ogni nuovo utente su una nuova macchina dovrà autenticarsi separatamente tramite Google o Email.
+- Eseguire `npm start` per avviare le server di sviluppo locale.
+- Il sito richiederà un nuovo login.
+La sessione è gestita localmente dal browser.
 
 ## Spiegazione delle scelte progettuali
 
+### Modularità e Best Practices
+Il codice è stato rifattorizzato seguendo i principi di design atomico.
+Componenti critici come il sistema di notifiche (Toasts), la creazione di post (Publish) e la visualizzazione immagini (Lightbox) sono stati isolati per essere riutilizzabili e indipendenti, riducendo la complessità dei componenti principali come Feed e Profile.
+
 ### Estetica Terminal Prompt
-La scelta di un'interfaccia ispirata al terminale mira a eliminare le distrazioni cognitive tipiche dei social network moderni. L'uso del font JetBrains Mono e di una struttura a riga di comando forza l'utente a focalizzarsi sul contenuto testuale piuttosto che sugli elementi decorativi.
+L'uso del font JetBrains Mono e di una struttura a riga di comando forza l'utente a focalizzarsi sul contenuto testuale.
+La scelta stilistica si allinea ai principi del brutalismo digitale.
 
-### Palette Monocromatica (Bianco e Nero)
-Originariamente più complessa, la palette è stata semplificata a puro bianco e nero per massimizzare la leggibilità e l'accessibilità. Questa scelta stilistica si allinea ai principi del brutalismo digitale, garantendo al contempo una navigazione riposante per la vista.
-
-### Sicurezza e Git
-I file di configurazione contenenti le API Key sono esclusi dal sistema di versionamento tramite `.gitignore`. Questa è una scelta obbligatoria per prevenire l'esposizione di credenziali sensibili in repository pubblici, mantenendo la flessibilità di configurazione locale tramite file non tracciati.
-
-### Risoluzione Dipendenze
-L'uso di `--legacy-peer-deps` durante l'installazione è una scelta tecnica dettata dall'utilizzo di versioni bleeding-edge di Angular (v21), garantendo la compatibilità con il kit di sviluppo Firebase durante la fase di transizione del framework.
+### Palette Monocromatica e Pico.css
+La palette è stata semplificata a puro bianco e nero per massimizzare la leggibilità.
+L'integrazione di Pico.css garantisce una base solida per la responsività mobile e il supporto nativo alla modalità oscura senza appesantire il bundle finale.
