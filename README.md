@@ -1,86 +1,67 @@
-# MEA
+# MEA Social Network - Documentazione Tecnica
 
-Link alla piattaforma: [https://measn.web.app](https://measn.web.app)
+MEA è una Single Page Application (SPA) basata su framework Angular, integrata con i servizi Firebase per la gestione di autenticazione, persistenza dei dati e hosting.
 
-## Funzionamento del sito
-MEA è un social network minimale basato su architettura Single Page Application (SPA).
+## Stack Tecnologico
 
-### Architettura Tecnica
-- **Framework**: Angular 21 (Standalone Components).
-- **Backend**: Firebase (Authentication, Cloud Firestore, Storage).
-- **Stile**: [Pico.css](https://picocss.com/) personalizzato per un'estetica minimalista e brutale.
-- **Design**: Minimalismo estremo, palette monocromatica (bianco/nero/grigio), font JetBrains Mono per un'estetica "terminal-like".
-- **Ottimizzazione**: Layout dinamico 70/30 (Feed) e 100% (Profilo), gestione intelligente delle larghezze massime per la leggibilità.
+- **Framework**: Angular 21 (Standalone Components)
+- **Backend-as-a-Service**: Firebase (Firestore, Authentication)
+- **CSS Framework**: Pico.css v2 (Customized)
+- **Gestione Stato**: RxJS (Subject/Observable pattern)
+- **Package Manager**: npm
 
-### Funzionalità Principali
-1. **Autenticazione**: Accesso sicuro tramite Firebase Auth.
-2. **Feed Dinamico**: Paginazione manuale ("Carica altri") per ottimizzare le prestazioni e il consumo di dati.
-3. **Creazione Post**: Editor integrato con supporto per caricamento immagini e anteprima immediata.
-4. **Profilo Utente**: Gestione autonoma dei propri post, aggiornamento dati anagrafici e foto profilo con ridimensionamento automatico.
-5. **UI/UX**: Supporto nativo Dark/Light mode con palette ad alto contrasto, sistema di notifiche toast e lightbox per le immagini.
-6. **Performance**: Architettura a componenti isolati e logica di servizio centralizzata (SocialService).
+## Architettura del Sistema
 
-## Guida alla configurazione e Portabilità
+### Core Services
+La logica di business è centralizzata in `SocialService` ([social.ts](file:///c:/Users/DEV%202/Desktop/MEAaw/src/app/services/social.ts)), che gestisce:
+- Comunicazione con Firestore (CRUD dei post, aggiornamento profili).
+- Elaborazione immagini lato client (ridimensionamento e compressione Base64).
+- Gestione dello stato di autenticazione tramite Firebase Auth.
 
-Questa repository è configurata per essere "portabile".
-Non contiene file sensibili o legati alla sessione dell'autore originale.
-Seguire questi passaggi per ripristinare il progetto su una nuova macchina.
+### Gestione Dati e Paginazione
+Il sistema utilizza una paginazione manuale basata su cursori Firestore (`QueryDocumentSnapshot`).
+- **Feed Principale**: Query ordinata per `date` decrescente con limite batch predefinito.
+- **Profilo Utente**: Query filtrata per `uid` e ordinata per `date`. Richiede l'indice composito definito in `firestore.indexes.json`.
 
-### 1. Prerequisiti
-- **Node.js**: Versione 18 o superiore.
-- **Firebase CLI**: Installabile tramite `npm install -g firebase-tools`.
-- **Account Firebase**: Necessario per creare un nuovo progetto e ottenere le chiavi API.
+### UI/UX e Layout
+Il layout è dinamico e gestito tramite classi CSS condizionali in `app.component`:
+- **Feed**: Layout asimmetrico (80% contenuto principale, 20% sidebar).
+- **Profilo**: Layout centrato con larghezza massima fissata al 70% per ottimizzare la leggibilità su desktop.
+- **Transizioni**: Implementate tramite CSS Transitions su `flex-basis`, `opacity` e `transform` per la gestione fluida della sidebar.
 
-### 2. Ripristino Dipendenze
-Dopo aver clonato la repository, installare le librerie necessarie:
+## Requisiti e Installazione
+
+### Dipendenze
+Per l'installazione delle dipendenze, data la versione di Angular, è necessario utilizzare il flag per la risoluzione dei peer-deps:
 ```powershell
 npm install --legacy-peer-deps
 ```
-*Il flag `--legacy-peer-deps` è fondamentale per risolvere i conflitti di versione tra Angular 21 e il kit Firebase.*
 
-### 3. Ripristino File Mancanti (Configurazione Ambiente)
-Per motivi di sicurezza, i file di ambiente non sono inclusi in Git.
-È necessario crearli manualmente:
-
-1. Creare la cartella `src/environments/` (se non esiste).
-2. Creare il file `src/environments/environment.development.ts`.
-3. Incollare il seguente codice sostituendo i valori con quelli forniti dalla Console Firebase (Project Settings > Your Apps):
-
+### Configurazione Ambiente
+Il sistema richiede un file di configurazione `src/environments/environment.development.ts` con la seguente struttura:
 ```typescript
 export const environment = {
   firebase: {
-    apiKey: "TUA_API_KEY",
-    authDomain: "TUO_PROGETTO.firebaseapp.com",
-    projectId: "TUO_PROGETTO",
-    storageBucket: "TUO_PROGETTO.firebasestorage.app",
-    messagingSenderId: "ID_MESSAGGISTICA",
-    appId: "ID_APP",
-    measurementId: "ID_MISURAZIONE"
+    apiKey: "STRING",
+    authDomain: "STRING",
+    projectId: "STRING",
+    storageBucket: "STRING",
+    messagingSenderId: "STRING",
+    appId: "STRING"
   }
 };
 ```
 
-### 4. Configurazione Database (Firestore)
-Per far funzionare il social network, è necessario inizializzare Firestore sul proprio account Firebase:
-1. Creare un database Firestore in **Native Mode**.
-2. Applicare le regole di sicurezza presenti nel file `firestore.rules` tramite la console Firebase o eseguendo `npx firebase deploy --only firestore:rules`.
+### Configurazione Database
+Firestore deve essere configurato con le regole di sicurezza definite in `firestore.rules`. È obbligatoria la creazione del seguente indice composito per il corretto funzionamento della pagina profilo:
+- **Collection**: `posts`
+- **Fields**: `uid` (Ascending), `date` (Descending)
 
-### 5. Avvio e Sessione
-Una volta configurato l'ambiente:
-- Eseguire `npm start` per avviare le server di sviluppo locale.
-- Il sito richiederà un nuovo login.
-La sessione è gestita localmente dal browser.
+## Deployment
 
-## Spiegazione delle scelte progettuali
+Il processo di build e deploy è gestito tramite Firebase CLI:
+1. Build dell'applicazione: `npm run build`
+2. Deploy Hosting e Indici: `npx firebase deploy`
 
-### Modularità e Best Practices
-Il codice è stato rifattorizzato seguendo i principi di design atomico.
-Componenti critici come il sistema di notifiche (Toasts), la creazione di post (Publish) e la visualizzazione immagini (Lightbox) sono stati isolati per essere riutilizzabili e indipendenti, riducendo la complessità dei componenti principali come Feed e Profile.
-
-### Estetica Terminal Prompt
-L'uso del font JetBrains Mono e di una struttura a riga di comando forza l'utente a focalizzarsi sul contenuto testuale.
-La scelta stilistica si allinea ai principi del brutalismo digitale.
-
-### Palette Monocromatica e Pico.css
-La palette è stata semplificata a puro bianco e nero per massimizzare la leggibilità.
-L'integrazione di Pico.css garantisce una base solida per la responsività mobile e il supporto nativo alla modalità oscura senza appesantire il bundle finale.
+---
+Documentazione tecnica aggiornata al 16/01/2026.

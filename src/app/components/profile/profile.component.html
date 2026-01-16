@@ -41,7 +41,7 @@
 
       <!-- Publish Component -->
       <div class="publish-col">
-        <app-publish></app-publish>
+        <app-publish (postCreated)="resetAndLoadPosts()"></app-publish>
       </div>
     </div>
   </header>
@@ -67,7 +67,7 @@
             <div class="post-info-main">
               <header class="post-header-unified">
                 <div class="user-meta-unified">
-                  <small class="post-date-meta">POST_ID: {{ post.id.substring(0,8) }} | {{ post.date | date:'dd/MM/yyyy HH:mm' }}</small>
+                  <small class="post-date-meta">POST_ID: {{ post.id.substring(0,8) }} | {{ post.date | date:'dd/MM/yyyy HH:mm:ss' }}</small>
                 </div>
                 <button *ngIf="post.uid === user.uid" class="outline contrast btn-delete-post" (click)="deletePost(post.id, post.uid, user.uid)">ELIMINA</button>
               </header>

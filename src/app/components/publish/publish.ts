@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SocialService } from '../../services/social';
@@ -20,6 +20,8 @@ export class PublishComponent {
   socialService = inject(SocialService);
   /** Servizio per la gestione delle notifiche toast */
   notificationService = inject(NotificationService);
+
+  @Output() postCreated = new EventEmitter<void>();
 
   /** Contenuto testuale del nuovo post */
   newPost = '';
@@ -50,6 +52,7 @@ export class PublishComponent {
       this.newPost = '';
       this.selectedImage = null;
       this.notificationService.success("Post pubblicato!");
+      this.postCreated.emit();
     } catch (e) {
       this.notificationService.error("Errore durante la pubblicazione.");
     } finally {

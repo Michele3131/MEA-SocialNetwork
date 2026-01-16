@@ -1,15 +1,19 @@
 .publish-card {
-  margin-bottom: 2rem;
+  margin-bottom: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: hidden; /* Ripristinato hidden per contenere i bordi degli elementi interni */
   border: 1px solid var(--pico-border-color);
   background: var(--pico-card-background-color);
+  display: flex;
+  flex-direction: column;
 }
 
 .publish-card header {
   background: var(--post-header-bg);
   border-bottom: 1px solid var(--pico-border-color);
   padding: 0.5rem 1rem;
+  margin: 0;
+  width: 100%;
 }
 
 .publish-card textarea { 
@@ -17,12 +21,15 @@
   box-shadow: none !important; 
   outline: none !important; 
   background: transparent !important; 
-  min-height: 120px;
+  height: 120px; /* Altezza fissa */
+  max-height: 120px;
   color: var(--pico-color);
   padding: 1rem;
   margin: 0;
   width: 100%;
-  resize: vertical;
+  resize: none; /* Disabilita espansione manuale */
+  overflow-y: auto; /* Mostra scrollbar se necessario */
+  display: block;
 }
 
 .publish-footer {
@@ -32,6 +39,8 @@
   padding: 0.75rem 1rem;
   border-top: 1px solid var(--pico-border-color);
   background: var(--post-header-bg);
+  margin: 0;
+  width: 100%;
 }
 
 .image-preview-container {

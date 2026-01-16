@@ -106,16 +106,25 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.loadingPosts = true;
     try {
+      console.log('--- Caricamento Altri Post Profilo ---');
+      console.log('Cursore attuale:', this.lastVisible ? this.lastVisible.id : 'NESSUNO');
+
       const result = await this.socialService.getMyPostsPaginated(this.currentUid, this.pageSize, this.lastVisible);
       
+      console.log('Risultato query profilo:', result.posts.length, 'post ricevuti');
+
       if (result.posts.length === 0) {
         this.allLoaded = true;
+        console.log('Fine dei post profilo raggiunta (0 post)');
       } else {
         this.posts = [...this.posts, ...result.posts];
         this.lastVisible = result.lastVisible;
-        
+        console.log('Nuovo totale post profilo:', this.posts.length);
+        console.log('Nuovo cursore profilo:', this.lastVisible ? this.lastVisible.id : 'NULL');
+
         if (result.posts.length < this.pageSize) {
           this.allLoaded = true;
+          console.log('Fine dei post profilo raggiunta (batch incompleto)');
         }
       }
     } catch (err: any) {

@@ -48,15 +48,20 @@ export class FeedComponent implements OnInit {
   /** Caricamento iniziale dei post */
   async loadInitialPosts() {
     this.loading = true;
+    this.allLoaded = false;
+    this.lastVisible = null;
     try {
       const result = await this.socialService.getFeedPostsPaginated(this.pageSize);
       this.posts = result.posts;
       this.lastVisible = result.lastVisible;
       
+      console.log('Caricamento iniziale:', this.posts.length, 'post caricati. Prossimo cursore:', !!this.lastVisible);
+
       if (this.posts.length < this.pageSize) {
         this.allLoaded = true;
       }
     } catch (err: any) {
+      console.error('Errore loadInitialPosts:', err);
       this.error = "Impossibile caricare il feed.";
       this.notificationService.error(this.error);
     } finally {
@@ -66,20 +71,32 @@ export class FeedComponent implements OnInit {
 
   /** Caricamento di un nuovo lotto di post */
   async loadMore() {
-    if (this.loading || this.allLoaded) return;
+    if (this.loading || this.allLoaded) {
+      console.warn('loadMore saltato:', { loading: this.loading, allLoaded: this.allLoaded });
+      return;
+    }
 
     this.loading = true;
     try {
+      console.log('--- Caricamento Altri Post ---');
+      console.log('Cursore attuale:', this.lastVisible ? this.lastVisible.id : 'NESSUNO');
+      
       const result = await this.socialService.getFeedPostsPaginated(this.pageSize, this.lastVisible);
+      
+      console.log('Risultato query:', result.posts.length, 'post ricevuti');
       
       if (result.posts.length === 0) {
         this.allLoaded = true;
+        console.log('Fine del feed raggiunta (0 post)');
       } else {
         this.posts = [...this.posts, ...result.posts];
         this.lastVisible = result.lastVisible;
+        console.log('Nuovo totale post:', this.posts.length);
+        console.log('Nuovo cursore:', this.lastVisible ? this.lastVisible.id : 'NULL');
         
         if (result.posts.length < this.pageSize) {
           this.allLoaded = true;
+          console.log('Fine del feed raggiunta (batch incompleto)');
         }
       }
     } catch (err: any) {

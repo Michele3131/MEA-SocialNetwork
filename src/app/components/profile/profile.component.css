@@ -1,8 +1,9 @@
 .profile-header {
   margin-bottom: 3rem;
-  padding: 0; /* Rimosso padding per allineare con i post */
+  padding: 0;
   background: transparent;
   border-bottom: 1px solid var(--pico-border-color);
+  overflow: visible; /* Assicura che nulla venga troncato */
 }
 
 .profile-nav-actions {
@@ -30,8 +31,8 @@
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: 3rem;
-  align-items: center; /* Centrato verticalmente per miglior equilibrio */
-  padding: 2rem 0;
+  align-items: start; /* Allineato in alto per evitare troncamenti da centraggio */
+  padding: 3rem 0; /* Aumentato padding verticale */
 }
 
 .profile-main-info {

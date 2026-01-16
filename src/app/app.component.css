@@ -7,15 +7,17 @@
 
 .content-left {
     flex: 1;
-    padding: 2rem 0; /* Padding orizzontale rimosso, gestito da width container */
+    padding: 2rem 0;
     overflow-y: auto;
     display: flex;
     justify-content: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .feed-container {
     width: 100%;
-    max-width: 700px; /* Ridotta larghezza per aumentare i margini laterali */
+    max-width: 700px;
+    transition: max-width 0.4s ease;
 }
 
 .content-left.full-width {
@@ -25,17 +27,29 @@
 
 .profile-container {
   width: 100%;
-  max-width: 850px; /* Ridotta larghezza per aumentare i margini laterali */
+  max-width: 850px;
 }
 
 .sidebar-right {
-    flex: 0 0 300px; /* Larghezza fissa per la sidebar */
+    flex: 0 0 300px;
     padding: 2rem;
     border-left: 1px solid var(--pico-border-color);
     position: sticky;
     top: 0;
     height: 100vh;
     overflow-y: auto;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.sidebar-right.hidden {
+    flex: 0 0 0px;
+    padding: 0;
+    border-left: none;
+    opacity: 0;
+    transform: translateX(50px);
+    pointer-events: none;
 }
 
 @media (max-width: 1024px) {

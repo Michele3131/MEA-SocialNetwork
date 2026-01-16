@@ -5,7 +5,7 @@
     </main>
   </div>
   
-  <aside class="sidebar-right" *ngIf="!isProfilePage()">
+  <aside class="sidebar-right" [class.hidden]="isProfilePage()">
     <app-navbar></app-navbar>
   </aside>
 </div>
