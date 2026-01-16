@@ -28,43 +28,42 @@
 
 .profile-header-grid {
   display: grid;
-  grid-template-columns: 180px 1fr; /* Colonna info più compatta */
-  gap: 2.5rem;
-  align-items: start;
-}
-
-.profile-info-col {
-  display: flex;
-  flex-direction: column;
+  grid-template-columns: 200px 1fr;
+  gap: 3rem;
+  align-items: center; /* Centrato verticalmente per miglior equilibrio */
+  padding: 2rem 0;
 }
 
 .profile-main-info {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  align-items: flex-start; /* Allineato a sinistra del container */
-  text-align: left;
+  align-items: center; /* Centrato internamente */
+  text-align: center;
   height: auto;
 }
 
 .avatar-container {
   position: relative;
   cursor: pointer;
-  width: 120px; /* Foto profilo più piccola per far spazio al box post */
-  height: 120px;
+  width: 140px; /* Leggermente più grande per visibilità */
+  height: 140px;
   border: 1px solid var(--pico-border-color);
   background: var(--pico-background-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .user-details {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Allineato a sinistra */
+  align-items: center; /* Centrato */
+  width: 100%;
 }
 
 .name-edit-group {
   display: flex;
   align-items: center;
+  justify-content: center; /* Centrato */
   gap: 0.5rem;
   width: 100%;
 }

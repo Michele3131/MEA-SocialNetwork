@@ -12,36 +12,34 @@
     </div>
 
     <div class="profile-header-grid">
-      <!-- Colonna Sinistra: Info Profilo -->
-      <div class="profile-info-col">
-        <div class="profile-main-info">
-          <div class="avatar-container" (click)="profileInput.click()">
-            <img [src]="userProfile.photoURL || 'https://ui-avatars.com/api/?name=' + (userProfile.displayName || userProfile.email || 'U') + '&background=random'" 
-                 class="profile-avatar">
-            <div class="edit-overlay">MODIFICA</div>
-          </div>
-          <input type="file" #profileInput (change)="onProfileFileSelected($event, user)" accept="image/*" style="display: none;">
+      <!-- Info Profilo Centrata -->
+      <div class="profile-main-info">
+        <div class="avatar-container" (click)="profileInput.click()">
+          <img [src]="userProfile.photoURL || 'https://ui-avatars.com/api/?name=' + (userProfile.displayName || userProfile.email || 'U') + '&background=random'" 
+               class="profile-avatar">
+          <div class="edit-overlay">MODIFICA</div>
+        </div>
+        <input type="file" #profileInput (change)="onProfileFileSelected($event, user)" accept="image/*" style="display: none;">
 
-          <div class="user-details">
-            <div class="name-edit-group" *ngIf="!editingName">
-              <h2 class="prompt profile-display-name">{{ userProfile.displayName }}</h2>
-              <button class="outline contrast btn-edit-sm" (click)="startEditingName(userProfile.displayName)">EDIT</button>
-            </div>
-            
-            <div class="name-edit-group" *ngIf="editingName">
-              <input type="text" [(ngModel)]="tempName" class="edit-name-input-sm">
-              <div class="edit-actions-sm">
-                <button (click)="saveName(user)" class="btn-xs">OK</button>
-                <button (click)="editingName = false" class="outline secondary btn-xs">X</button>
-              </div>
-            </div>
-            
-            <p class="secondary profile-email-sm">{{ userProfile.email }}</p>
+        <div class="user-details">
+          <div class="name-edit-group" *ngIf="!editingName">
+            <h2 class="prompt profile-display-name">{{ userProfile.displayName }}</h2>
+            <button class="outline contrast btn-edit-sm" (click)="startEditingName(userProfile.displayName)">EDIT</button>
           </div>
+          
+          <div class="name-edit-group" *ngIf="editingName">
+            <input type="text" [(ngModel)]="tempName" class="edit-name-input-sm">
+            <div class="edit-actions-sm">
+              <button (click)="saveName(user)" class="btn-xs">OK</button>
+              <button (click)="editingName = false" class="outline secondary btn-xs">X</button>
+            </div>
+          </div>
+          
+          <p class="secondary profile-email-sm">{{ userProfile.email }}</p>
         </div>
       </div>
 
-      <!-- Colonna Destra: Publish Component -->
+      <!-- Publish Component -->
       <div class="publish-col">
         <app-publish></app-publish>
       </div>

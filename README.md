@@ -7,17 +7,18 @@ MEA è un social network minimale basato su architettura Single Page Application
 
 ### Architettura Tecnica
 - **Framework**: Angular 21 (Standalone Components).
-- **Backend**: Firebase (Authentication e Cloud Firestore).
-- **Stile**: [Pico.css](https://picocss.com/) (Classless CSS Framework) integrato per un layout responsivo e leggero.
-- **Design**: Minimalismo estremo, palette monocromatica, font JetBrains Mono per un'estetica "terminal-like".
-- **Modularità**: Architettura a componenti riutilizzabili (Toasts, Lightbox, Publish, Loading) per massimizzare la manutenibilità.
+- **Backend**: Firebase (Authentication, Cloud Firestore, Storage).
+- **Stile**: [Pico.css](https://picocss.com/) personalizzato per un'estetica minimalista e brutale.
+- **Design**: Minimalismo estremo, palette monocromatica (bianco/nero/grigio), font JetBrains Mono per un'estetica "terminal-like".
+- **Ottimizzazione**: Layout dinamico 70/30 (Feed) e 100% (Profilo), gestione intelligente delle larghezze massime per la leggibilità.
 
-### Flusso Operativo
-1. **Autenticazione**: Accesso obbligatorio tramite Email/Password per la creazione del profilo.
-2. **Feed**: Visualizzazione cronologica dei post recuperati in tempo reale da Firestore, ordinati dal più recente.
-3. **Interazione**: Creazione di post testuali con supporto alle immagini (auto-ridimensionate lato client).
-4. **Profilo**: Gestione dei propri post, aggiornamento del nome utente e della foto profilo.
-5. **Notifiche & Feedback**: Sistema di feedback integrato per ogni azione e componenti di caricamento animati (Loading) con estetica terminal.
+### Funzionalità Principali
+1. **Autenticazione**: Accesso sicuro tramite Firebase Auth.
+2. **Feed Dinamico**: Paginazione manuale ("Carica altri") per ottimizzare le prestazioni e il consumo di dati.
+3. **Creazione Post**: Editor integrato con supporto per caricamento immagini e anteprima immediata.
+4. **Profilo Utente**: Gestione autonoma dei propri post, aggiornamento dati anagrafici e foto profilo con ridimensionamento automatico.
+5. **UI/UX**: Supporto nativo Dark/Light mode con palette ad alto contrasto, sistema di notifiche toast e lightbox per le immagini.
+6. **Performance**: Architettura a componenti isolati e logica di servizio centralizzata (SocialService).
 
 ## Guida alla configurazione e Portabilità
 

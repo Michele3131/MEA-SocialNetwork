@@ -10,8 +10,8 @@
 
 /* Override Pico colors to match MEA minimal aesthetic */
 [data-theme='light'] {
-  --pico-background-color: #f0f2f5; /* Grigio chiaro di sfondo, addio bianco assoluto */
-  --pico-card-background-color: #ffffff; /* Card bianche per staccare dallo sfondo grigio */
+  --pico-background-color: #f0f2f5;
+  --pico-card-background-color: #ffffff;
   --pico-color: #1c1e21;
   --pico-muted-color: #606770;
   --pico-border-color: #dddfe2;
@@ -22,6 +22,10 @@
   --mea-red: #d93025;
   --post-header-bg: #f8f9fa;
   --sidebar-bg: #ffffff;
+  --pico-form-element-background-color: #ffffff;
+  --pico-form-element-border-color: #dddfe2;
+  --pico-form-element-color: #1c1e21;
+  --pico-form-element-focus-color: #1c1e21;
 }
 
 [data-theme='dark'], :root:not([data-theme='light']) {
@@ -37,6 +41,10 @@
   --mea-red: #f35369;
   --post-header-bg: #1c1e21;
   --sidebar-bg: #050505;
+  --pico-form-element-background-color: #1c1e21;
+  --pico-form-element-border-color: #242526;
+  --pico-form-element-color: #e4e6eb;
+  --pico-form-element-focus-color: #ffffff;
 }
 
 body { 
