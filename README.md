@@ -1,4 +1,4 @@
-# MEA Social Network - Documentazione Tecnica
+# MEA Social Network - Documentazione Tecnica (https://measn.web.app/login)
 
 MEA è una Single Page Application (SPA) basata su framework Angular, integrata con i servizi Firebase per la gestione di autenticazione, persistenza dei dati e hosting.
 
@@ -62,6 +62,3 @@ Firestore deve essere configurato con le regole di sicurezza definite in `firest
 Il processo di build e deploy è gestito tramite Firebase CLI:
 1. Build dell'applicazione: `npm run build`
 2. Deploy Hosting e Indici: `npx firebase deploy`
-
----
-Documentazione tecnica aggiornata al 16/01/2026.
