@@ -1,4 +1,4 @@
-# MEA Social Network - Documentazione Tecnica (https://measn.web.app/login)
+# MEA Social Network - Documentazione Tecnica [https://measn.web.app]
 
 MEA è una Single Page Application (SPA) basata su framework Angular, integrata con i servizi Firebase per la gestione di autenticazione, persistenza dei dati e hosting.
 
